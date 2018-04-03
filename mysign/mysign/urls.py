@@ -19,5 +19,5 @@ from productdata import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('getdata/',views.index),
+    path('prodata/',views.productdata),
 ]
