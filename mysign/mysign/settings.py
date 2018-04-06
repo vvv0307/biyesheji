@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'productdata',
-    'rest_framework'
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -122,3 +122,4 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 APPEND_SLASH = False
+#DEBUG_TOOLBAR_PATCH_SETTINGS = False
