@@ -320,8 +320,8 @@ def getLackOfPhaseVolData():
 			phaseint = random.randint(0,2)
 
 			a_dv1 = []
-			if(phaseint == 0):
-				a_dv1 == [0]*24
+			if(phaseint == 1):
+				a_dv1 = [0]*24
 			else:
 				for x in range(0,24):
 					a_dv1.insert(x,random.uniform(0.99,1.00))
@@ -337,7 +337,7 @@ def getLackOfPhaseVolData():
 			if(phaseint == 2):
 				c_dv1 = [0]*24
 			else:
-				for x in (0,24):
+				for x in range(0,24):
 					c_dv1.insert(x,random.uniform(0.98,1.00))
 			#第二天a相电压数据
 			a_dv2 = []
@@ -433,7 +433,14 @@ def getLackOfPhaseVolData():
 			#gl3 = [0]*24
 			gl1 = []
 			for x in range(0,24):
-				gl = CalculatePF(a_dv1[x],b_dv1[x],c_dv1[x],a_c1[x],b_c1[x],c_c1[x],gs1[x])
+				a = a_dv1[x]
+				b = b_dv1[x]
+				c = c_dv1[x]
+				d = a_c1[x]
+				e = b_c1[x]
+				f = c_c1[x]
+				g = gs1[x]
+				gl = CalculatePF(a,b,c,d,e,f,g)
 				gl1.insert(x,gl)
 			gl2 = []
 			for x in range(0,24):
