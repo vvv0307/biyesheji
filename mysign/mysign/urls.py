@@ -22,5 +22,7 @@ urlpatterns = [
     path('prodata/',views.productdata),
     path('getcharts/normalvol',views.getnormalvol),
     path('getcharts/abnormalvol',views.getabnormalvol),
-    path('getcharts/abnormalcur',views.getabnormalcur)
+    path('getcharts/abnormalcur',views.getabnormalcur),
+    path('getcharts/abnormalpf',views.getabnormalpowerfactor),
+    path('getcharts/volbalance',views.getVolBalance)
 ]

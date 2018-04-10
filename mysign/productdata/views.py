@@ -65,6 +65,7 @@ def productdata(request):
 			b = {'status':status,'data':abnormalReversePodata,'filename':filename}
 			c = json.dumps(b)
 			return HttpResponse(c)
+#正常电压
 def getnormalvol(request):
 	if(request.method == 'GET'):
 		if(os.path.exists("normalUser.npy")):
@@ -85,12 +86,38 @@ def getnormalvol(request):
 		else:
 			code = {'status':'ERROR'}
 			return HttpResponse(json.dumps(code))
-def getabnormalvol(request):
+#三相电压平衡度
+def getVolBalance(request):
 	if(request.method == 'GET'):
-		if(os.path.exists("volAbnormal.npy")):
+		if(os.path.exists("normalUser.npy")):
 			vol = []
 			date = []
-			data = np.load("volAbnormal.npy").tolist()
+			data = np.load("normalUser.npy").tolist()
+			index = np.load("index.npy").tolist()
+			length1 = data.__len__()
+			for x in range(0,length1):
+				k = []
+				for y in range(0,24):
+					a = data[x][6][y]
+					b = data[x][7][y]
+					c = data[x][8][y]
+					vmax = max(a,b,c)
+					vmin = min(a,b,c)
+					vb = (vmax - vmin)/vmax
+					k.insert(y,vb)
+				vol.insert(x,k)
+				date.insert(x,str(index[x]))
+			code = {'status':'OK','data':vol,'index':date}
+			return HttpResponse(json.dumps(code))
+		else:
+			code = {'status':'ERROR'}
+			return HttpResponse(json.dumps(code))
+def getnormalcur(request):
+	if(request.method == 'GET'):
+		if(os.path.exists("normalUser.npy")):
+			vol = []
+			date = []
+			data = np.load("normalUser.npy").tolist()
 			index = np.load("index.npy").tolist()
 			length1 = data.__len__()
 			for x in range(0,length1):
@@ -105,6 +132,28 @@ def getabnormalvol(request):
 		else:
 			code = {'status':'ERROR'}
 			return HttpResponse(json.dumps(code))
+#异常电压
+def getabnormalvol(request):
+	if(request.method == 'GET'):
+		if(os.path.exists("volAbnormal.npy")):
+			vol = []
+			date = []
+			data = np.load("volAbnormal.npy").tolist()
+			index = np.load("index.npy").tolist()
+			length1 = data.__len__()
+			for x in range(0,length1):
+				a = data[x][15]
+				b = data[x][16]
+				c = data[x][17]
+				v = [a,b,c]
+				vol.insert(x,v)
+				date.insert(x,str(index[x]))
+			code = {'status':'OK','data':vol,'index':date}
+			return HttpResponse(json.dumps(code))
+		else:
+			code = {'status':'ERROR'}
+			return HttpResponse(json.dumps(code))
+#异常电流
 def getabnormalcur(request):
 	if(request.method == 'GET'):
 		if(os.path.exists("culAbnormal.npy")):
@@ -117,6 +166,27 @@ def getabnormalcur(request):
 				a = data[x][15]
 				b = data[x][16]
 				c = data[x][17]
+				v = [a,b,c]
+				vol.insert(x,v)
+				date.insert(x,str(index[x]))
+			code = {'status':'OK','data':vol,'index':date}
+			return HttpResponse(json.dumps(code))
+		else:
+			code = {'status':'ERROR'}
+			return HttpResponse(json.dumps(code))
+#异常功率因数
+def getabnormalpowerfactor(request):
+	if(request.method == 'GET'):
+		if(os.path.exists("powerfactorabnormal.npy")):
+			vol = []
+			date = []
+			data = np.load("powerfactorabnormal.npy").tolist()
+			index = np.load("index.npy").tolist()
+			length1 = data.__len__()
+			for x in range(0,length1):
+				a = data[x][21]
+				b = data[x][22]
+				c = data[x][23]
 				v = [a,b,c]
 				vol.insert(x,v)
 				date.insert(x,str(index[x]))
