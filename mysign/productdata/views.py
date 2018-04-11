@@ -86,6 +86,83 @@ def getnormalvol(request):
 		else:
 			code = {'status':'ERROR'}
 			return HttpResponse(json.dumps(code))
+def getabCurBalance(request):
+	if(request.method == 'GET'):
+		if(os.path.exists("culAbnormal.npy")):
+			vol = []
+			date = []
+			data = np.load("culAbnormal.npy").tolist()
+			index = np.load("index.npy").tolist()
+			length1 = data.__len__()
+			for x in range(0,length1):
+				k = []
+				for y in range(0,24):
+					a = data[x][15][y]
+					b = data[x][16][y]
+					c = data[x][17][y]
+					vmax = max(a,b,c)
+					vmin = min(a,b,c)
+					vb = (vmax - vmin)/vmax
+					k.insert(y,vb)
+				vol.insert(x,k)
+				date.insert(x,str(index[x]))
+			code = {'status':'OK','data':vol,'index':date}
+			return HttpResponse(json.dumps(code))
+		else:
+			code = {'status':'ERROR'}
+			return HttpResponse(json.dumps(code))
+#电流平衡度
+def getCurBalance(request):
+	if(request.method == 'GET'):
+		if(os.path.exists("normalUser.npy")):
+			vol = []
+			date = []
+			data = np.load("normalUser.npy").tolist()
+			index = np.load("index.npy").tolist()
+			length1 = data.__len__()
+			for x in range(0,length1):
+				k = []
+				for y in range(0,24):
+					a = data[x][15][y]
+					b = data[x][16][y]
+					c = data[x][17][y]
+					vmax = max(a,b,c)
+					vmin = min(a,b,c)
+					vb = (vmax - vmin)/vmax
+					k.insert(y,vb)
+				vol.insert(x,k)
+				date.insert(x,str(index[x]))
+			code = {'status':'OK','data':vol,'index':date}
+			return HttpResponse(json.dumps(code))
+		else:
+			code = {'status':'ERROR'}
+			return HttpResponse(json.dumps(code))
+#电压平衡度
+def getabVolBalance(request):
+	if(request.method == 'GET'):
+		if(os.path.exists("volAbnormal.npy")):
+			vol = []
+			date = []
+			data = np.load("volAbnormal.npy").tolist()
+			index = np.load("index.npy").tolist()
+			length1 = data.__len__()
+			for x in range(0,length1):
+				k = []
+				for y in range(0,24):
+					a = data[x][6][y]
+					b = data[x][7][y]
+					c = data[x][8][y]
+					vmax = max(a,b,c)
+					vmin = min(a,b,c)
+					vb = (vmax - vmin)/vmax
+					k.insert(y,vb)
+				vol.insert(x,k)
+				date.insert(x,str(index[x]))
+			code = {'status':'OK','data':vol,'index':date}
+			return HttpResponse(json.dumps(code))
+		else:
+			code = {'status':'ERROR'}
+			return HttpResponse(json.dumps(code))
 #三相电压平衡度
 def getVolBalance(request):
 	if(request.method == 'GET'):

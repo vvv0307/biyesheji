@@ -24,5 +24,8 @@ urlpatterns = [
     path('getcharts/abnormalvol',views.getabnormalvol),
     path('getcharts/abnormalcur',views.getabnormalcur),
     path('getcharts/abnormalpf',views.getabnormalpowerfactor),
-    path('getcharts/volbalance',views.getVolBalance)
+    path('getcharts/volbalance',views.getVolBalance),
+    path('getcharts/abvolbalance',views.getabVolBalance),
+    path('getcharts/curbalance',views.getCurBalance),
+    path('getcharts/abcurbalance',views.getabCurBalance)
 ]
