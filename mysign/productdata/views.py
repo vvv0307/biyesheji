@@ -5,6 +5,7 @@ import os
 from django.http import HttpResponse
 import random
 import numpy as np
+import scipy.stats as stats
 
 def productdata(request):
 	if(request.method == 'POST'):
@@ -19,12 +20,12 @@ def productdata(request):
 			end = Postdict.get('end')
 			sbegin = begin.split('/')
 			send = end.split('/')
-			year1 = int(sbegin[0])
-			month1 = int(sbegin[1])
-			day1 = int(sbegin[2])
-			year2 = int(send[0])
-			month2 = int(send[1])
-			day2 = int(send[2])
+			month1 = int(sbegin[0])
+			day1 = int(sbegin[1])
+			year1 = int(sbegin[2])
+			month2 = int(send[0])
+			day2 = int(send[1])
+			year2 = int(send[2])
 			days = daysBetweenDates(year1,month1,day1,year2,month2,day2)
 			normalUserdata = []
 			abnormalVoldata = []
@@ -47,7 +48,6 @@ def productdata(request):
 				date.insert(x,today)
 				today = today + datetime.timedelta(days=1)
 			np.array(date)
-			status = "OK"
 			np.array(normalUserdata)
 			np.array(abnormalVoldata)
 			np.array(abnormalCurdata)
@@ -62,9 +62,14 @@ def productdata(request):
 			#获取一天正常用户数据
 			fileurl = 'url'
 			filename = {'正常用户数据':'normalUser.npy','电压异常数据':'volAbnormal.npy','电流异常数据':'culAbnormal.npy','反极性':'reversePolarity.npy','功率因数异常':'powerfactorabnormal.npy','date':'date.npy'}
-			b = {'status':status,'data':abnormalReversePodata,'filename':filename}
-			c = json.dumps(b)
-			return HttpResponse(c)
+			b = {'status':'OK'}
+			#b = {'status':'OK'}
+			response = HttpResponse(json.dumps(b),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
 #正常电压
 def getnormalvol(request):
 	if(request.method == 'GET'):
@@ -82,10 +87,258 @@ def getnormalvol(request):
 				vol.insert(x,v)
 				date.insert(x,str(index[x]))
 			code = {'status':'OK','data':vol,'index':date}
-			return HttpResponse(json.dumps(code))
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
 		else:
 			code = {'status':'ERROR'}
-			return HttpResponse(json.dumps(code))
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+#反极性用户电压
+def getReverseVol(request):
+	if(request.method == 'GET'):
+		if(os.path.exists("reversePolarity.npy")):
+			vol = []
+			date = []
+			data = np.load("reversePolarity.npy").tolist()
+			index = np.load("index.npy").tolist()
+			length1 = data.__len__()
+			for x in range(0,length1):
+				a = data[x][6]
+				b = data[x][7]
+				c = data[x][8]
+				v = [a,b,c]
+				vol.insert(x,v)
+				date.insert(x,str(index[x]))
+			code = {'status':'OK','data':vol,'index':date}
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+		else:
+			code = {'status':'ERROR'}
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+#功率因数异常电压
+def getPfVol(request):
+	if(request.method == 'GET'):
+		if(os.path.exists("powerfactorabnormal.npy")):
+			vol = []
+			date = []
+			data = np.load("powerfactorabnormal.npy").tolist()
+			index = np.load("index.npy").tolist()
+			length1 = data.__len__()
+			for x in range(0,length1):
+				a = data[x][6]
+				b = data[x][7]
+				c = data[x][8]
+				v = [a,b,c]
+				vol.insert(x,v)
+				date.insert(x,str(index[x]))
+			code = {'status':'OK','data':vol,'index':date}
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+		else:
+			code = {'status':'ERROR'}
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+#正常电压偏离度
+def getvoldevia(request):
+	if(request.method == 'GET'):
+		if(os.path.exists("normalUser.npy")):
+			vol = []
+			date = []
+			data = np.load("normalUser.npy").tolist()
+			index = np.load("index.npy").tolist()
+			length1 = data.__len__()
+			for x in range(0,length1):
+				a = data[x][6]
+				b = data[x][7]
+				c = data[x][8]
+				for y in range(0,24):
+					a[y] = abs(a[y] - 1);
+					b[y] = abs(b[y] - 1);
+					c[y] = abs(c[y] - 1);
+				v = [a,b,c]
+				vol.insert(x,v)
+				date.insert(x,str(index[x]))
+			code = {'status':'OK','data':vol,'index':date}
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+		else:
+			code = {'status':'ERROR'}
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+#反极性电压偏离度
+def getRevoldevia(request):
+	if(request.method == 'GET'):
+		if(os.path.exists("reversePolarity.npy")):
+			vol = []
+			date = []
+			data = np.load("reversePolarity.npy").tolist()
+			index = np.load("index.npy").tolist()
+			length1 = data.__len__()
+			for x in range(0,length1):
+				a = data[x][6]
+				b = data[x][7]
+				c = data[x][8]
+				for y in range(0,24):
+					a[y] = abs(a[y] - 1);
+					b[y] = abs(b[y] - 1);
+					c[y] = abs(c[y] - 1);
+				v = [a,b,c]
+				vol.insert(x,v)
+				date.insert(x,str(index[x]))
+			code = {'status':'OK','data':vol,'index':date}
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+		else:
+			code = {'status':'ERROR'}
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+#电流异常用户电压偏离度
+def getabcurvoldevia(request):
+	if(request.method == 'GET'):
+		if(os.path.exists("culAbnormal.npy")):
+			vol = []
+			date = []
+			data = np.load("culAbnormal.npy").tolist()
+			index = np.load("index.npy").tolist()
+			length1 = data.__len__()
+			for x in range(0,length1):
+				a = data[x][6]
+				b = data[x][7]
+				c = data[x][8]
+				for y in range(0,24):
+					a[y] = abs(a[y] - 1);
+					b[y] = abs(b[y] - 1);
+					c[y] = abs(c[y] - 1);
+				v = [a,b,c]
+				vol.insert(x,v)
+				date.insert(x,str(index[x]))
+			code = {'status':'OK','data':vol,'index':date}
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+		else:
+			code = {'status':'ERROR'}
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+#电压异常用户电压偏离度
+def getabvoldevia(request):
+	if(request.method == 'GET'):
+		if(os.path.exists("volAbnormal.npy")):
+			vol = []
+			date = []
+			data = np.load("volAbnormal.npy").tolist()
+			index = np.load("index.npy").tolist()
+			length1 = data.__len__()
+			for x in range(0,length1):
+				a = data[x][6]
+				b = data[x][7]
+				c = data[x][8]
+				for y in range(0,24):
+					a[y] = abs(a[y] - 1);
+					b[y] = abs(b[y] - 1);
+					c[y] = abs(c[y] - 1);
+				v = [a,b,c]
+				vol.insert(x,v)
+				date.insert(x,str(index[x]))
+			code = {'status':'OK','data':vol,'index':date}
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+		else:
+			code = {'status':'ERROR'}
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+#功率因数异常电压偏离度
+def getPfvoldevia(request):
+	if(request.method == 'GET'):
+		if(os.path.exists("powerfactorabnormal.npy")):
+			vol = []
+			date = []
+			data = np.load("powerfactorabnormal.npy").tolist()
+			index = np.load("index.npy").tolist()
+			length1 = data.__len__()
+			for x in range(0,length1):
+				a = data[x][6]
+				b = data[x][7]
+				c = data[x][8]
+				for y in range(0,24):
+					a[y] = abs(a[y] - 1);
+					b[y] = abs(b[y] - 1);
+					c[y] = abs(c[y] - 1);
+				v = [a,b,c]
+				vol.insert(x,v)
+				date.insert(x,str(index[x]))
+			code = {'status':'OK','data':vol,'index':date}
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+		else:
+			code = {'status':'ERROR'}
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+#电流异常用户电流不平衡度
 def getabCurBalance(request):
 	if(request.method == 'GET'):
 		if(os.path.exists("culAbnormal.npy")):
@@ -107,11 +360,21 @@ def getabCurBalance(request):
 				vol.insert(x,k)
 				date.insert(x,str(index[x]))
 			code = {'status':'OK','data':vol,'index':date}
-			return HttpResponse(json.dumps(code))
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
 		else:
 			code = {'status':'ERROR'}
-			return HttpResponse(json.dumps(code))
-#电流平衡度
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+#正常用户电流平衡度
 def getCurBalance(request):
 	if(request.method == 'GET'):
 		if(os.path.exists("normalUser.npy")):
@@ -133,11 +396,129 @@ def getCurBalance(request):
 				vol.insert(x,k)
 				date.insert(x,str(index[x]))
 			code = {'status':'OK','data':vol,'index':date}
-			return HttpResponse(json.dumps(code))
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
 		else:
 			code = {'status':'ERROR'}
-			return HttpResponse(json.dumps(code))
-#电压平衡度
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+#功率因数异常电流不平衡度
+def getPfCurBalance(request):
+	if(request.method == 'GET'):
+		if(os.path.exists("powerfactorabnormal.npy")):
+			vol = []
+			date = []
+			data = np.load("powerfactorabnormal.npy").tolist()
+			index = np.load("index.npy").tolist()
+			length1 = data.__len__()
+			for x in range(0,length1):
+				k = []
+				for y in range(0,24):
+					a = data[x][15][y]
+					b = data[x][16][y]
+					c = data[x][17][y]
+					vmax = max(a,b,c)
+					vmin = min(a,b,c)
+					vb = (vmax - vmin)/vmax
+					k.insert(y,vb)
+				vol.insert(x,k)
+				date.insert(x,str(index[x]))
+			code = {'status':'OK','data':vol,'index':date}
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+		else:
+			code = {'status':'ERROR'}
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+#电压异常用户点流不平衡度
+def getabVolCurBalance(request):
+	if(request.method == 'GET'):
+		if(os.path.exists("volAbnormal.npy")):
+			vol = []
+			date = []
+			data = np.load("volAbnormal.npy").tolist()
+			index = np.load("index.npy").tolist()
+			length1 = data.__len__()
+			for x in range(0,length1):
+				k = []
+				for y in range(0,24):
+					a = data[x][15][y]
+					b = data[x][16][y]
+					c = data[x][17][y]
+					vmax = max(a,b,c)
+					vmin = min(a,b,c)
+					vb = (vmax - vmin)/vmax
+					k.insert(y,vb)
+				vol.insert(x,k)
+				date.insert(x,str(index[x]))
+			code = {'status':'OK','data':vol,'index':date}
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+		else:
+			code = {'status':'ERROR'}
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+#反极性电流不平衡度
+def getReCurBalance(request):
+	if(request.method == 'GET'):
+		if(os.path.exists("reversePolarity.npy")):
+			vol = []
+			date = []
+			data = np.load("reversePolarity.npy").tolist()
+			index = np.load("index.npy").tolist()
+			length1 = data.__len__()
+			for x in range(0,length1):
+				k = []
+				for y in range(0,24):
+					a = data[x][15][y]
+					b = data[x][16][y]
+					c = data[x][17][y]
+					vmax = max(a,b,c)
+					vmin = min(a,b,c)
+					vb = (vmax - vmin)/vmax
+					k.insert(y,vb)
+				vol.insert(x,k)
+				date.insert(x,str(index[x]))
+			code = {'status':'OK','data':vol,'index':date}
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+		else:
+			code = {'status':'ERROR'}
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+#电压异常用户电压平衡度
 def getabVolBalance(request):
 	if(request.method == 'GET'):
 		if(os.path.exists("volAbnormal.npy")):
@@ -159,11 +540,21 @@ def getabVolBalance(request):
 				vol.insert(x,k)
 				date.insert(x,str(index[x]))
 			code = {'status':'OK','data':vol,'index':date}
-			return HttpResponse(json.dumps(code))
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
 		else:
 			code = {'status':'ERROR'}
-			return HttpResponse(json.dumps(code))
-#三相电压平衡度
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+#正常用户三相电压平衡度
 def getVolBalance(request):
 	if(request.method == 'GET'):
 		if(os.path.exists("normalUser.npy")):
@@ -185,10 +576,129 @@ def getVolBalance(request):
 				vol.insert(x,k)
 				date.insert(x,str(index[x]))
 			code = {'status':'OK','data':vol,'index':date}
-			return HttpResponse(json.dumps(code))
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
 		else:
 			code = {'status':'ERROR'}
-			return HttpResponse(json.dumps(code))
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+#反极性电压不平衡度
+def getReVolBalance(request):
+	if(request.method == 'GET'):
+		if(os.path.exists("reversePolarity.npy")):
+			vol = []
+			date = []
+			data = np.load("reversePolarity.npy").tolist()
+			index = np.load("index.npy").tolist()
+			length1 = data.__len__()
+			for x in range(0,length1):
+				k = []
+				for y in range(0,24):
+					a = data[x][6][y]
+					b = data[x][7][y]
+					c = data[x][8][y]
+					vmax = max(a,b,c)
+					vmin = min(a,b,c)
+					vb = (vmax - vmin)/vmax
+					k.insert(y,vb)
+				vol.insert(x,k)
+				date.insert(x,str(index[x]))
+			code = {'status':'OK','data':vol,'index':date}
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+		else:
+			code = {'status':'ERROR'}
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+#电流异常用户电压不平衡度
+def getabcurVolBalance(request):
+	if(request.method == 'GET'):
+		if(os.path.exists("culAbnormal.npy")):
+			vol = []
+			date = []
+			data = np.load("culAbnormal.npy").tolist()
+			index = np.load("index.npy").tolist()
+			length1 = data.__len__()
+			for x in range(0,length1):
+				k = []
+				for y in range(0,24):
+					a = data[x][6][y]
+					b = data[x][7][y]
+					c = data[x][8][y]
+					vmax = max(a,b,c)
+					vmin = min(a,b,c)
+					vb = (vmax - vmin)/vmax
+					k.insert(y,vb)
+				vol.insert(x,k)
+				date.insert(x,str(index[x]))
+			code = {'status':'OK','data':vol,'index':date}
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+		else:
+			code = {'status':'ERROR'}
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+#功率因数异常电压不平衡度
+def getPfVolBalance(request):
+	if(request.method == 'GET'):
+		if(os.path.exists("powerfactorabnormal.npy")):
+			vol = []
+			date = []
+			data = np.load("powerfactorabnormal.npy").tolist()
+			index = np.load("index.npy").tolist()
+			length1 = data.__len__()
+			for x in range(0,length1):
+				k = []
+				for y in range(0,24):
+					a = data[x][6][y]
+					b = data[x][7][y]
+					c = data[x][8][y]
+					vmax = max(a,b,c)
+					vmin = min(a,b,c)
+					vb = (vmax - vmin)/vmax
+					k.insert(y,vb)
+				vol.insert(x,k)
+				date.insert(x,str(index[x]))
+			code = {'status':'OK','data':vol,'index':date}
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+		else:
+			code = {'status':'ERROR'}
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+#正常用户电流
 def getnormalcur(request):
 	if(request.method == 'GET'):
 		if(os.path.exists("normalUser.npy")):
@@ -198,17 +708,120 @@ def getnormalcur(request):
 			index = np.load("index.npy").tolist()
 			length1 = data.__len__()
 			for x in range(0,length1):
-				a = data[x][6]
-				b = data[x][7]
-				c = data[x][8]
+				a = data[x][15]
+				b = data[x][16]
+				c = data[x][17]
 				v = [a,b,c]
 				vol.insert(x,v)
 				date.insert(x,str(index[x]))
 			code = {'status':'OK','data':vol,'index':date}
-			return HttpResponse(json.dumps(code))
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
 		else:
 			code = {'status':'ERROR'}
-			return HttpResponse(json.dumps(code))
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+#电压异常用户电流
+def getabvolcur(request):
+	if(request.method == 'GET'):
+		if(os.path.exists("volAbnormal.npy")):
+			vol = []
+			date = []
+			data = np.load("volAbnormal.npy").tolist()
+			index = np.load("index.npy").tolist()
+			length1 = data.__len__()
+			for x in range(0,length1):
+				a = data[x][15]
+				b = data[x][16]
+				c = data[x][17]
+				v = [a,b,c]
+				vol.insert(x,v)
+				date.insert(x,str(index[x]))
+			code = {'status':'OK','data':vol,'index':date}
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+		else:
+			code = {'status':'ERROR'}
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+#反极性电流
+def getRecur(request):
+	if(request.method == 'GET'):
+		if(os.path.exists("reversePolarity.npy")):
+			vol = []
+			date = []
+			data = np.load("reversePolarity.npy").tolist()
+			index = np.load("index.npy").tolist()
+			length1 = data.__len__()
+			for x in range(0,length1):
+				a = data[x][15]
+				b = data[x][16]
+				c = data[x][17]
+				v = [a,b,c]
+				vol.insert(x,v)
+				date.insert(x,str(index[x]))
+			code = {'status':'OK','data':vol,'index':date}
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+		else:
+			code = {'status':'ERROR'}
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+#功率因数异常电流
+def getPfcur(request):
+	if(request.method == 'GET'):
+		if(os.path.exists("powerfactorabnormal.npy")):
+			vol = []
+			date = []
+			data = np.load("powerfactorabnormal.npy").tolist()
+			index = np.load("index.npy").tolist()
+			length1 = data.__len__()
+			for x in range(0,length1):
+				a = data[x][15]
+				b = data[x][16]
+				c = data[x][17]
+				v = [a,b,c]
+				vol.insert(x,v)
+				date.insert(x,str(index[x]))
+			code = {'status':'OK','data':vol,'index':date}
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+		else:
+			code = {'status':'ERROR'}
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
 #异常电压
 def getabnormalvol(request):
 	if(request.method == 'GET'):
@@ -226,10 +839,51 @@ def getabnormalvol(request):
 				vol.insert(x,v)
 				date.insert(x,str(index[x]))
 			code = {'status':'OK','data':vol,'index':date}
-			return HttpResponse(json.dumps(code))
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
 		else:
 			code = {'status':'ERROR'}
-			return HttpResponse(json.dumps(code))
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+#电流异常用户电压
+def getabcurvol(request):
+	if(request.method == 'GET'):
+		if(os.path.exists("culAbnormal.npy")):
+			vol = []
+			date = []
+			data = np.load("culAbnormal.npy").tolist()
+			index = np.load("index.npy").tolist()
+			length1 = data.__len__()
+			for x in range(0,length1):
+				a = data[x][6]
+				b = data[x][7]
+				c = data[x][8]
+				v = [a,b,c]
+				vol.insert(x,v)
+				date.insert(x,str(index[x]))
+			code = {'status':'OK','data':vol,'index':date}
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+		else:
+			code = {'status':'ERROR'}
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
 #异常电流
 def getabnormalcur(request):
 	if(request.method == 'GET'):
@@ -247,10 +901,144 @@ def getabnormalcur(request):
 				vol.insert(x,v)
 				date.insert(x,str(index[x]))
 			code = {'status':'OK','data':vol,'index':date}
-			return HttpResponse(json.dumps(code))
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
 		else:
 			code = {'status':'ERROR'}
-			return HttpResponse(json.dumps(code))
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+#正常用户功率因数
+def getnopowerfactor(request):
+	if(request.method == 'GET'):
+		if(os.path.exists("normalUser.npy")):
+			vol = []
+			date = []
+			data = np.load("normalUser.npy").tolist()
+			index = np.load("index.npy").tolist()
+			length1 = data.__len__()
+			for x in range(0,length1):
+				a = data[x][21]
+				b = data[x][22]
+				c = data[x][23]
+				v = [a,b,c]
+				vol.insert(x,v)
+				date.insert(x,str(index[x]))
+			code = {'status':'OK','data':vol,'index':date}
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+		else:
+			code = {'status':'ERROR'}
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+#电压异常用户功率因数
+def getAvPowerFactor(request):
+	if(request.method == 'GET'):
+		if(os.path.exists("volAbnormal.npy")):
+			vol = []
+			date = []
+			data = np.load("volAbnormal.npy").tolist()
+			index = np.load("index.npy").tolist()
+			length1 = data.__len__()
+			for x in range(0,length1):
+				a = data[x][21]
+				b = data[x][22]
+				c = data[x][23]
+				v = [a,b,c]
+				vol.insert(x,v)
+				date.insert(x,str(index[x]))
+			code = {'status':'OK','data':vol,'index':date}
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+		else:
+			code = {'status':'ERROR'}
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+#电流异常用户功率因数
+def getCvPowerFactor(request):
+	if(request.method == 'GET'):
+		if(os.path.exists("culAbnormal.npy")):
+			vol = []
+			date = []
+			data = np.load("culAbnormal.npy").tolist()
+			index = np.load("index.npy").tolist()
+			length1 = data.__len__()
+			for x in range(0,length1):
+				a = data[x][21]
+				b = data[x][22]
+				c = data[x][23]
+				v = [a,b,c]
+				vol.insert(x,v)
+				date.insert(x,str(index[x]))
+			code = {'status':'OK','data':vol,'index':date}
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+		else:
+			code = {'status':'ERROR'}
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+#反极性功率因数
+def getRePowerFactor(request):
+	if(request.method == 'GET'):
+		if(os.path.exists("reversePolarity.npy")):
+			vol = []
+			date = []
+			data = np.load("reversePolarity.npy").tolist()
+			index = np.load("index.npy").tolist()
+			length1 = data.__len__()
+			for x in range(0,length1):
+				a = data[x][21]
+				b = data[x][22]
+				c = data[x][23]
+				v = [a,b,c]
+				vol.insert(x,v)
+				date.insert(x,str(index[x]))
+			code = {'status':'OK','data':vol,'index':date}
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
+		else:
+			code = {'status':'ERROR'}
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
 #异常功率因数
 def getabnormalpowerfactor(request):
 	if(request.method == 'GET'):
@@ -268,10 +1056,20 @@ def getabnormalpowerfactor(request):
 				vol.insert(x,v)
 				date.insert(x,str(index[x]))
 			code = {'status':'OK','data':vol,'index':date}
-			return HttpResponse(json.dumps(code))
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
 		else:
 			code = {'status':'ERROR'}
-			return HttpResponse(json.dumps(code))
+			response = HttpResponse(json.dumps(code),content_type='application/json');
+			response['Access-Control-Allow-Origin'] = '*';
+			response['Access-Control-Allow-Methods'] = "POST,GET,PUT,DELETE,OPTIONS"
+			response['Access-Control-Max-Age'] = '1000'
+			response['Access-Control-Allow-Headers'] = "*"
+			return response
 		
 def isLeapYear(year):  
     return (year % 4 == 0 and year % 100 != 0) or year % 400 == 0  
@@ -361,48 +1159,70 @@ def getThreeDayData():
 			#第一天的a相电流
 			a_c1 = []
 			for x in range(0,24):
-				a_c1.insert(x,random.uniform(0.05,0.6))
+				a_c1.insert(x,random.uniform(0.05,1.0))
 			#第一天的b相电流
 			b_c1 = []
 			for x in range(0,24):
-				if(x  in (1,2,5,7,8,15,20)):
-					b_c1.insert(x,random.uniform(0.05,0.15))
+				minc = a_c1[x]*0.8
+				maxc = 0
+				if((a_c1[x]*1.2)<=1):
+					maxc = a_c1[x]*1.2
 				else:
-					b_c1.insert(x,random.uniform(0.1,0.6))
+					maxc = 1.0
+				lower, upper = minc, maxc
+				mu, sigma = a_c1[x], 0.01
+				X = stats.truncnorm(
+    				(lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				b_c1.insert(x,X.rvs(1))
 			#第一天的c相电流
 			c_c1 = []
 			for x in range(0,24):
-				if(x in (2,3,6,7,8,16,19,20,22)):
-					c_c1.insert(x,random.uniform(0.05,0.15))
+				minc = a_c1[x]*0.8
+				maxc = 0
+				if((a_c1[x]*1.2)<=1):
+					maxc = a_c1[x]*1.2
 				else:
-					c_c1.insert(x,random.uniform(0.1,0.6))
+					maxc = 1.0
+				lower, upper = minc, maxc
+				mu, sigma = a_c1[x], 0.008
+				X = stats.truncnorm(
+    				(lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				c_c1.insert(x,X.rvs(1))
 			#第二天的a相电流
 			a_c2 = []
 			for x in range(0,24):
-				if(x in (3,4,7,9,10,16,19,20)):
-					a_c2.insert(x,random.uniform(0.05,0.15))
-				else:
-					a_c2.insert(x,random.uniform(0.1,0.6))
+				a_c2.insert(x,random.uniform(0.05,0.8))
 			#第二天的b相电流
 			b_c2 = []
 			for x in range(0,24):
-				if(x in (3,4,5,10,11,17,21)):
-					b_c2.insert(x,random.uniform(0.05,0.15))
+				minc = a_c2[x]*0.8
+				maxc = 0
+				if((a_c2[x]*1.2)<=1):
+					maxc = a_c2[x]*1.2
 				else:
-					b_c2.insert(x,random.uniform(0.1,0.6))
+					maxc = 1.0
+				lower, upper = minc, maxc
+				mu, sigma = a_c2[x], 0.008
+				X = stats.truncnorm(
+    				(lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				b_c2.insert(x,X.rvs(1))
 			#第二天的c相电流
 			c_c2 = []
 			for x in range(0,24):
-				if(x in (1,2,6,7,8,16,17,20,21,22)):
-					c_c2.insert(x,random.uniform(0.05,0.15))
+				minc = a_c2[x]*0.8
+				maxc = 0
+				if((a_c2[x]*1.2)<=1):
+					maxc = a_c2[x]*1.2
 				else:
-					c_c2.insert(x,random.uniform(0.1,0.6))
+					maxc = 1.0
+				lower, upper = minc, maxc
+				mu, sigma = a_c2[x], 0.008
+				X = stats.truncnorm(
+    				(lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				c_c2.insert(x,X.rvs(1))
 			a_c3 = []
 			for x in range(0,24):
-				if(x in (2,3,5,7,8,10,16,19,22)):
-					a_c3.insert(x,random.uniform(0.07,0.2))
-				else:
-					a_c3.insert(x,random.uniform(0.1,0.6))
+				a_c3.insert(x,random.uniform(0.05,0.8))
 			#第三天的a相电流
  			#a_c3 = []
 			#for x in range(0,24):
@@ -413,17 +1233,31 @@ def getThreeDayData():
 			#第三天的b相电流
 			b_c3 = []
 			for x in range(0,24):
-				if(x in (1,2,5,7,8,15,20)):
-					b_c3.insert(x,random.uniform(0.1,0.6))
+				minc = a_c3[x]*0.8
+				maxc = 0
+				if((a_c3[x]*1.2)<=1):
+					maxc = a_c3[x]*1.2
 				else:
-					b_c3.insert(x,random.uniform(0.05,0.3))
+					maxc = 1.0
+				lower, upper = minc, maxc
+				mu, sigma = a_c3[x], 0.007
+				X = stats.truncnorm(
+    				(lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				b_c3.insert(x,X.rvs(1))
 			#第三天的c相电流
 			c_c3 = []
 			for x in range(0,24):
-				if(x in (1,2,4,6,7,19,20)):
-					c_c3.insert(x,random.uniform(0.05,0.2))
+				minc = a_c3[x]*0.8
+				maxc = 0
+				if((a_c3[x]*1.2)<=1):
+					maxc = a_c3[x]*1.2
 				else:
-					c_c3.insert(x,random.uniform(0.1,0.6))
+					maxc = 1.0
+				lower, upper = minc, maxc
+				mu, sigma = a_c3[x], 0.007
+				X = stats.truncnorm(
+    				(lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				c_c3.insert(x,X.rvs(1))
 			#第一天的功率因数
 			gs1 = []
 			for x in range(0,24):
@@ -464,105 +1298,127 @@ def getThreeDayData():
 def getLackOfPhaseVolData():
 			random.seed()
 			#随机生成a相一天电压数据
-			phaseint = random.randint(0,2)
-
-			a_dv1 = []
-			if(phaseint == 1):
-				a_dv1 = [0]*24
-			else:
-				for x in range(0,24):
-					a_dv1.insert(x,random.uniform(0.99,1.00))
+			
+			
+			lower, upper = 0.0,1.0
+			mu, sigma = 1.0,0.05
+			X = stats.truncnorm(
+    			(lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				
+			a_dv1 = X.rvs(24)
+			b_dv1 = X.rvs(24)
+			c_dv1 = X.rvs(24)
+			a_dv2 = X.rvs(24)
+			b_dv2 = X.rvs(24)
+			c_dv2 = X.rvs(24)
+			a_dv3 = X.rvs(24)
+			b_dv3 = X.rvs(24)
+			c_dv3 = X.rvs(24)
 			#随机生成b相一天电压数据
-			b_dv1 = []
-			if(phaseint == 1):
-				b_dv1 = [0]*24
-			else:
-				for x in range(0,24):
-					b_dv1.insert(x,random.uniform(0.99,1.00))
-			#随机生成c相电压一天数据
-			c_dv1 = []
-			if(phaseint == 2):
-				c_dv1 = [0]*24
-			else:
-				for x in range(0,24):
-					c_dv1.insert(x,random.uniform(0.98,1.00))
-			#第二天a相电压数据
-			a_dv2 = []
-			if(phaseint == 0):
-				a_dv2 = [0]*24
-			else:
-				for x in range(0,24):
-					a_dv2.insert(x,random.uniform(0.96,1.00))
-			#第二天的b相电压
-			b_dv2 = []
-			if(phaseint == 1):
-				b_dv2 = [0]*24
-			else:
-				for x in range(0,24):
-					b_dv2.insert(x,random.uniform(0.97,1.00))
-			#第二天的c相电压
-			c_dv2 = []
-			if(phaseint == 2):
-				c_dv2 = [0]*24
-			else:
-				for x in range(0,24):
-					c_dv2.insert(x,random.uniform(0.98,1.00))
-			#第三天的a相电压
-			a_dv3 = []
-			if(phaseint == 0):
-				a_dv3 = [0]*24
-			else:
-				for x in range(0,24):
-					a_dv3.insert(x,random.uniform(0.98,1.00))
-			#第三天的b相电压
-			b_dv3 = []
-			if(phaseint == 1):
-				b_dv3 = [0]*24
-			else:
-				for x in range(0,24):
-					b_dv3.insert(x,random.uniform(0.96,1.00))
-			#第三天的c相电压
-			c_dv3 = []
-			if(phaseint == 2):
-				c_dv3 = [0]*24
-			else:
-				for x in range(0,24):
-					c_dv3.insert(x,random.uniform(0.97,1.00))
+			
 			#第一天的a相电流
 			a_c1 = []
 			for x in range(0,24):
-				a_c1.insert(x,random.uniform(0.05,0.3))
+				a_c1.insert(x,random.uniform(0.05,1.0))
+
 			#第一天的b相电流
 			b_c1 = []
 			for x in range(0,24):
-				b_c1.insert(x,random.uniform(0.05,0.7))
+				minc = a_c1[x]*0.8
+				maxc = 0
+				if((a_c1[x]*1.2)<=1):
+					maxc = a_c1[x]*1.2
+				else:
+					maxc = 1.0
+				lower, upper = minc, maxc
+				mu, sigma = a_c1[x], 0.01
+				X = stats.truncnorm(
+    				(lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				b_c1.insert(x,X.rvs(1))
 			#第一天的c相电流
 			c_c1 = []
 			for x in range(0,24):
-				c_c1.insert(x,random.uniform(0.05,0.6))
+				minc = a_c1[x]*0.8
+				maxc = 0
+				if((a_c1[x]*1.2)<=1):
+					maxc = a_c1[x]*1.2
+				else:
+					maxc = 1.0
+				lower, upper = minc, maxc
+				mu, sigma = a_c1[x], 0.008
+				X = stats.truncnorm(
+    				(lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				c_c1.insert(x,X.rvs(1))
 			#第二天的a相电流
 			a_c2 = []
 			for x in range(0,24):
-					a_c2.insert(x,random.uniform(0.05,0.5))
+				a_c2.insert(x,random.uniform(0.05,0.8))
 			#第二天的b相电流
 			b_c2 = []
 			for x in range(0,24):
-				b_c2.insert(x,random.uniform(0.04,0.6))
+				minc = a_c2[x]*0.8
+				maxc = 0
+				if((a_c2[x]*1.2)<=1):
+					maxc = a_c2[x]*1.2
+				else:
+					maxc = 1.0
+				lower, upper = minc, maxc
+				mu, sigma = a_c2[x], 0.008
+				X = stats.truncnorm(
+    				(lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				b_c2.insert(x,X.rvs(1))
 			#第二天的c相电流
 			c_c2 = []
 			for x in range(0,24):
-				c_c2.insert(x,random.uniform(0.05,0.6))
+				minc = a_c2[x]*0.8
+				maxc = 0
+				if((a_c2[x]*1.2)<=1):
+					maxc = a_c2[x]*1.2
+				else:
+					maxc = 1.0
+				lower, upper = minc, maxc
+				mu, sigma = a_c2[x], 0.008
+				X = stats.truncnorm(
+    				(lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				c_c2.insert(x,X.rvs(1))
 			a_c3 = []
 			for x in range(0,24):
-				a_c3.insert(x,random.uniform(0.05,0.6))
+				a_c3.insert(x,random.uniform(0.05,0.8))
+			#第三天的a相电流
+ 			#a_c3 = []
+			#for x in range(0,24):
+			#if(x in (2,3,5,7,8,10,16,19,22)):
+			#	a_c3.insert(x,random.uniform(0.07,0.2))
+			#else:
+			#	a_c3.insert(x,random.uniform(0.1,0.6))
 			#第三天的b相电流
 			b_c3 = []
 			for x in range(0,24):
-				b_c3.insert(x,random.uniform(0.05,0.7))
+				minc = a_c3[x]*0.8
+				maxc = 0
+				if((a_c3[x]*1.2)<=1):
+					maxc = a_c3[x]*1.2
+				else:
+					maxc = 1.0
+				lower, upper = minc, maxc
+				mu, sigma = a_c3[x], 0.007
+				X = stats.truncnorm(
+    				(lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				b_c3.insert(x,X.rvs(1))
 			#第三天的c相电流
 			c_c3 = []
 			for x in range(0,24):
-				c_c3.insert(x,random.uniform(0.05,0.6))
+				minc = a_c3[x]*0.8
+				maxc = 0
+				if((a_c3[x]*1.2)<=1):
+					maxc = a_c3[x]*1.2
+				else:
+					maxc = 1.0
+				lower, upper = minc, maxc
+				mu, sigma = a_c3[x], 0.007
+				X = stats.truncnorm(
+    				(lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				c_c3.insert(x,X.rvs(1))
 			#第一天的功率因数
 			gs1 = []
 			for x in range(0,24):
@@ -966,29 +1822,107 @@ def getAbnormalPowerFactorData():
 			c_dv3 = []
 			for x in range(0,24):
 				c_dv3.insert(x,random.uniform(0.95,1.00))
-			
-			phaseint = random.randint(0,2)
-			a_c1 = [] 				#第一天a相电流
-			a_c2 = []				#第二天a相电流
-			a_c3 = []				#第三天a相电流
-			b_c1 = []				#第一天b相电流
-			b_c2 = []				#第二天b相电流
-			b_c3 = []				#第三天b相电流
-			c_c1 = []				#第一天c相电流
-			c_c2 = []				#第二天c相电流
-			c_c3 = []				#第三天c相电流
+			a_c1 = []
 			for x in range(0,24):
-				a_c1.insert(x,random.uniform(0.01,1.0))
-				a_c2.insert(x,random.uniform(0.01,1.0))
-				a_c3.insert(x,random.uniform(0.01,1.0))
-			
-				b_c1.insert(x,random.uniform(0.01,1.0))
-				b_c2.insert(x,random.uniform(0.01,1.0))
-				b_c3.insert(x,random.uniform(0.01,1.0))
-			
-				c_c1.insert(x,random.uniform(0.01,1.0))
-				c_c2.insert(x,random.uniform(0.01,1.0))
-				c_c3.insert(x,random.uniform(0.01,1.0))
+				a_c1.insert(x,random.uniform(0.05,1.0))
+			#第一天的b相电流
+			b_c1 = []
+			for x in range(0,24):
+				minc = a_c1[x]*0.8
+				maxc = 0
+				if((a_c1[x]*1.2)<=1):
+					maxc = a_c1[x]*1.2
+				else:
+					maxc = 1.0
+				lower, upper = minc, maxc
+				mu, sigma = a_c1[x], 0.01
+				X = stats.truncnorm(
+    				(lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				b_c1.insert(x,X.rvs(1))
+			#第一天的c相电流
+			c_c1 = []
+			for x in range(0,24):
+				minc = a_c1[x]*0.8
+				maxc = 0
+				if((a_c1[x]*1.2)<=1):
+					maxc = a_c1[x]*1.2
+				else:
+					maxc = 1.0
+				lower, upper = minc, maxc
+				mu, sigma = a_c1[x], 0.008
+				X = stats.truncnorm(
+    				(lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				c_c1.insert(x,X.rvs(1))
+			#第二天的a相电流
+			a_c2 = []
+			for x in range(0,24):
+				a_c2.insert(x,random.uniform(0.05,0.8))
+			#第二天的b相电流
+			b_c2 = []
+			for x in range(0,24):
+				minc = a_c2[x]*0.8
+				maxc = 0
+				if((a_c2[x]*1.2)<=1):
+					maxc = a_c2[x]*1.2
+				else:
+					maxc = 1.0
+				lower, upper = minc, maxc
+				mu, sigma = a_c2[x], 0.008
+				X = stats.truncnorm(
+    				(lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				b_c2.insert(x,X.rvs(1))
+			#第二天的c相电流
+			c_c2 = []
+			for x in range(0,24):
+				minc = a_c2[x]*0.8
+				maxc = 0
+				if((a_c2[x]*1.2)<=1):
+					maxc = a_c2[x]*1.2
+				else:
+					maxc = 1.0
+				lower, upper = minc, maxc
+				mu, sigma = a_c2[x], 0.008
+				X = stats.truncnorm(
+    				(lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				c_c2.insert(x,X.rvs(1))
+			a_c3 = []
+			for x in range(0,24):
+				a_c3.insert(x,random.uniform(0.05,0.8))
+			#第三天的a相电流
+ 			#a_c3 = []
+			#for x in range(0,24):
+			#if(x in (2,3,5,7,8,10,16,19,22)):
+			#	a_c3.insert(x,random.uniform(0.07,0.2))
+			#else:
+			#	a_c3.insert(x,random.uniform(0.1,0.6))
+			#第三天的b相电流
+			b_c3 = []
+			for x in range(0,24):
+				minc = a_c3[x]*0.8
+				maxc = 0
+				if((a_c3[x]*1.2)<=1):
+					maxc = a_c3[x]*1.2
+				else:
+					maxc = 1.0
+				lower, upper = minc, maxc
+				mu, sigma = a_c3[x], 0.007
+				X = stats.truncnorm(
+    				(lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				b_c3.insert(x,X.rvs(1))
+			#第三天的c相电流
+			c_c3 = []
+			for x in range(0,24):
+				minc = a_c3[x]*0.8
+				maxc = 0
+				if((a_c3[x]*1.2)<=1):
+					maxc = a_c3[x]*1.2
+				else:
+					maxc = 1.0
+				lower, upper = minc, maxc
+				mu, sigma = a_c3[x], 0.007
+				X = stats.truncnorm(
+    				(lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				c_c3.insert(x,X.rvs(1))
 			#第一天的功率因数
 			gs1 = []
 			for x in range(0,24):
@@ -1056,30 +1990,109 @@ def getReversePoData():
 				c_dv3.insert(x,random.uniform(0.95,1.00))
 			
 			phaseint = random.randint(0,2)
-			a_c1 = [] 				#第一天a相电流
-			a_c2 = []				#第二天a相电流
-			a_c3 = []				#第三天a相电流
-			b_c1 = []				#第一天b相电流
-			b_c2 = []				#第二天b相电流
-			b_c3 = []				#第三天b相电流
-			c_c1 = []				#第一天c相电流
-			c_c2 = []				#第二天c相电流
-			c_c3 = []				#第三天c相电流
+			a_c1 = []
 			for x in range(0,24):
-				a_c1.insert(x,random.uniform(0.01,1.0))
-				a_c2.insert(x,random.uniform(0.01,1.0))
-				a_c3.insert(x,random.uniform(0.01,1.0))
-			
-				b_c1.insert(x,random.uniform(0.01,1.0))
-				b_c2.insert(x,random.uniform(0.01,1.0))
-				b_c3.insert(x,random.uniform(0.01,1.0))
-			
-				c_c1.insert(x,random.uniform(0.01,0.7))
-				c_c2.insert(x,random.uniform(0.01,0.7))
-				c_c3.insert(x,random.uniform(0.01,0.7))
+				a_c1.insert(x,random.uniform(0.05,1.0))
+			#第一天的b相电流
+			b_c1 = []
+			for x in range(0,24):
+				minc = a_c1[x]*0.8
+				maxc = 0
+				if((a_c1[x]*1.2)<=1):
+					maxc = a_c1[x]*1.2
+				else:
+					maxc = 1.0
+				lower, upper = minc, maxc
+				mu, sigma = a_c1[x], 0.01
+				X = stats.truncnorm(
+    				(lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				b_c1.insert(x,X.rvs(1))
+			#第一天的c相电流
+			c_c1 = []
+			for x in range(0,24):
+				minc = a_c1[x]*0.8
+				maxc = 0
+				if((a_c1[x]*1.2)<=1):
+					maxc = a_c1[x]*1.2
+				else:
+					maxc = 1.0
+				lower, upper = minc, maxc
+				mu, sigma = a_c1[x], 0.008
+				X = stats.truncnorm(
+    				(lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				c_c1.insert(x,X.rvs(1))
+			#第二天的a相电流
+			a_c2 = []
+			for x in range(0,24):
+				a_c2.insert(x,random.uniform(0.05,0.8))
+			#第二天的b相电流
+			b_c2 = []
+			for x in range(0,24):
+				minc = a_c2[x]*0.8
+				maxc = 0
+				if((a_c2[x]*1.2)<=1):
+					maxc = a_c2[x]*1.2
+				else:
+					maxc = 1.0
+				lower, upper = minc, maxc
+				mu, sigma = a_c2[x], 0.008
+				X = stats.truncnorm(
+    				(lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				b_c2.insert(x,X.rvs(1))
+			#第二天的c相电流
+			c_c2 = []
+			for x in range(0,24):
+				minc = a_c2[x]*0.8
+				maxc = 0
+				if((a_c2[x]*1.2)<=1):
+					maxc = a_c2[x]*1.2
+				else:
+					maxc = 1.0
+				lower, upper = minc, maxc
+				mu, sigma = a_c2[x], 0.008
+				X = stats.truncnorm(
+    				(lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				c_c2.insert(x,X.rvs(1))
+			a_c3 = []
+			for x in range(0,24):
+				a_c3.insert(x,random.uniform(0.05,0.8))
+			#第三天的a相电流
+ 			#a_c3 = []
+			#for x in range(0,24):
+			#if(x in (2,3,5,7,8,10,16,19,22)):
+			#	a_c3.insert(x,random.uniform(0.07,0.2))
+			#else:
+			#	a_c3.insert(x,random.uniform(0.1,0.6))
+			#第三天的b相电流
+			b_c3 = []
+			for x in range(0,24):
+				minc = a_c3[x]*0.8
+				maxc = 0
+				if((a_c3[x]*1.2)<=1):
+					maxc = a_c3[x]*1.2
+				else:
+					maxc = 1.0
+				lower, upper = minc, maxc
+				mu, sigma = a_c3[x], 0.007
+				X = stats.truncnorm(
+    				(lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				b_c3.insert(x,X.rvs(1))
+			#第三天的c相电流
+			c_c3 = []
+			for x in range(0,24):
+				minc = a_c3[x]*0.8
+				maxc = 0
+				if((a_c3[x]*1.2)<=1):
+					maxc = a_c3[x]*1.2
+				else:
+					maxc = 1.0
+				lower, upper = minc, maxc
+				mu, sigma = a_c3[x], 0.007
+				X = stats.truncnorm(
+    				(lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				c_c3.insert(x,X.rvs(1))
 			#第一天的功率因数
 			gs1 = []
-
 			#第二天的功率因数
 			gs2 = []
 			#第三天的功率因数
