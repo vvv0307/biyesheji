@@ -66,10 +66,17 @@ def productdata(request):
 			a = []
 			a.insert(0,data)
 			index = ''
-			for x in range(0,8):
-				index += str(random.randint(0,9))
-			name = 'data' + index + '.npy'
+			name = ''
+			flag = True
+			while flag:
+				for x in range(0,8):
+					index += str(random.randint(0,9))
+				name = 'data' + index + '.npy'
+				if not os.path.exists(name):
+					flag = False
+			
 			np.save(name,a)
+
 			#获取一天正常用户数据
 			b = {'status':'OK','data':a[0],'name':name}
 			response = HttpResponse(json.dumps(b),content_type='application/json');
@@ -143,7 +150,7 @@ def getThreeDayData():
 			#gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
 				lower, upper = 0, 1
-				mu, sigma = nd[0][x], 0.07
+				mu, sigma = d[0][0][x], 0.07
 				X = stats.truncnorm(
  						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
 				rd = X.rvs(1)[0]
