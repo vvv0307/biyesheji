@@ -58,8 +58,10 @@ def productdata(request):
 				#功率因数异常
 				elif(category=='apf'):
 					data = getAbnormalPowerFactorData()
-			np.array(data)
-			np.save("data.npy",data)
+			a = []
+			a.insert(0,data)
+			
+			np.save("data.npy",a)
 			#获取一天正常用户数据
 			b = {'status':'OK','data':data}
 			response = HttpResponse(json.dumps(b),content_type='application/json');
@@ -72,7 +74,7 @@ def productdata(request):
 def getvol(request):
 	if(request.method == 'GET'):
 		if(os.path.exists("data.npy")):
-			d = np.load('data.npy').tolist()
+			d = np.load('data.npy').tolist()[0]
 			vol = []
 			if(len(d)==18):
 				a1 = d[0]
@@ -124,7 +126,7 @@ def getvol(request):
 def getvoldevia(request):
 	if(request.method == 'GET'):
 		if(os.path.exists("data.npy")):
-			d = np.load('data.npy').tolist()
+			d = np.load('data.npy').tolist()[0]
 			voldevia = []
 			if(len(d)==18):
 				a1 = []
@@ -224,7 +226,7 @@ def getvoldevia(request):
 def getCurBalance(request):
 	if(request.method == 'GET'):
 		if(os.path.exists("data.npy")):
-			d = np.load('data.npy').tolist()
+			d = np.load('data.npy').tolist()[0]
 			vol = []
 			if(len(d)==18):
 				a = []
@@ -295,7 +297,7 @@ def getCurBalance(request):
 def getVolBalance(request):
 	if(request.method == 'GET'):
 		if(os.path.exists("data.npy")):
-			d = np.load('data.npy').tolist()
+			d = np.load('data.npy').tolist()[0]
 			vol = []
 			if(len(d)==18):
 				a = []
@@ -364,7 +366,7 @@ def getVolBalance(request):
 def getCu(request):
 	if(request.method == 'GET'):
 		if(os.path.exists("data.npy")):
-			d = np.load('data.npy').tolist()
+			d = np.load('data.npy').tolist()[0]
 			vol = []
 			if(len(d)==18):
 				a1 = d[6]
@@ -416,12 +418,12 @@ def getCu(request):
 def getPowerFactor(request):
 	if(request.method == 'GET'):
 		if(os.path.exists("data.npy")):
-			d = np.load('data.npy').tolist()
+			d = np.load('data.npy').tolist()[0]
 			vol = []
 			if(len(d)==18):
-				v1 = d[16]
-				v2 = d[17]
-				v3 = d[18]
+				v1 = d[15]
+				v2 = d[16]
+				v3 = d[17]
 				vol.insert(1,v1)
 				vol.insert(2,v2)
 				vol.insert(3,v3)
@@ -456,109 +458,169 @@ def getThreeDayData():
 			nd = d[0]
 			#随机生成a相一天电压数据
 			a_dv1 = []
-			gauss = np.random.normal(0,0.07,24)
+			#gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][0][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = nd[0][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_dv1.insert(x,rd)
 			#随机生成b相一天电压数据
 			b_dv1 = []
-			gauss = np.random.normal(0,0.07,24)
+			#gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][1][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[0][1][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				b_dv1.insert(x,rd)
 			#随机生成c相电压一天数据
 			c_dv1 = []
-			gauss = np.random.normal(0,0.07,24)
+			#gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][2][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[0][2][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_dv1.insert(x,rd)
 			#第二天a相电压数据
 			a_dv2 = []
 			gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][3][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[0][3][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_dv2.insert(x,rd)
 			#第二天的b相电压
 			b_dv2 = []
 			gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][4][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[0][4][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				b_dv2.insert(x,rd)
 			#第二天的c相电压
 			c_dv2 = []
 			gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][5][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[0][5][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_dv2.insert(x,rd)
 			#第三天的a相电压
 			a_dv3 = []
 			gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][6][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[0][6][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_dv3.insert(x,rd)
 			#第三天的b相电压
 			b_dv3 = []
 			gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][7][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[0][7][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				b_dv3.insert(x,rd)
 			#第三天的c相电压
 			c_dv3 = []
-			gauss = np.random.normal(0,0.07,24)
+			#gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][8][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[0][8][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_dv3.insert(x,rd)
 			#第一天的a相电流
 			a_c1 = []
-			gauss = np.random.normal(0,0.2,24)
+			#gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][9][x] + gauss[x]
+				upper = 1
+				lower = 0
+				mu, sigma = d[0][9][x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_c1.insert(x,rd)
 			#第一天的b相电流
 			b_c1 = []
-			gauss = np.random.normal(0,0.2,24)
+			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][10][x] + gauss[x]
+				upper = 1 if 1.2*a_c1[x]>1 else 1.2*a_c1[x]
+				lower = 0.8*a_c1[x] 
+				mu, sigma = a_c1[x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				b_c1.insert(x,rd)
 			#第一天的c相电流
 			c_c1 = []
-			gauss = np.random.normal(0,0.2,24)
+			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][11][x] + gauss[x]
+				upper = 1 if 1.2*a_c1[x]>1 else 1.2*a_c1[x]
+				lower = 0.8*a_c1[x] 
+				mu, sigma = a_c1[x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_c1.insert(x,rd)
 			#第二天的a相电流
 			a_c2 = []
-			gauss = np.random.normal(0,0.2,24)
+			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][12][x] + gauss[x]
+				upper = 1
+				lower = 0
+				mu, sigma = d[0][12][x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_c2.insert(x,rd)
 			#第二天的b相电流
 			b_c2 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][13][x] + gauss[x]
+				upper = 1 if 1.2*a_c2[x]>1 else 1.2*a_c2[x]
+				lower = 0.8*a_c2[x] 
+				mu, sigma = a_c2[x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				b_c2.insert(x,rd)
 			#第二天的c相电流
 			c_c2 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][14][x] + gauss[x]
-				#minc = a_c2[x]*0.8
-				#maxc = 0
-				#if((a_c2[x]*1.2)<=1):
-				#	maxc = a_c2[x]*1.2
-				#else:
-				#	maxc = 1.0
-				#lower, upper = minc, maxc
-				#mu, sigma = a_c2[x], 0.008
-				#X = stats.truncnorm(
-    			#	(lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
-				#c_c2.insert(x,X.rvs(1))
+				upper = 1 if 1.2*a_c2[x]>1 else 1.2*a_c2[x]
+				lower = 0.8*a_c2[x] 
+				mu, sigma = a_c2[x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_c2.insert(x,rd)
 			a_c3 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][15][x] + gauss[x]
+				upper = 1
+				lower = 0
+				mu, sigma = d[0][15][x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_c3.insert(x,rd)
 			#第三天的a相电流
  			#a_c3 = []
@@ -571,46 +633,80 @@ def getThreeDayData():
 			b_c3 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][16][x] + gauss[x]
+				upper = 1 if 1.2*a_c3[x]>1 else 1.2*a_c3[x]
+				lower = 0.8*a_c3[x] 
+				mu, sigma = a_c3[x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				b_c3.insert(x,rd)
 			#第三天的c相电流
 			c_c3 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][17][x] + gauss[x]
+				upper = 1 if 1.2*a_c3[x]>1 else 1.2*a_c3[x]
+				lower = 0.8*a_c3[x] 
+				mu, sigma = a_c3[x], 0.05
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_c3.insert(x,rd)
 			#第一天的功率因数
 			gs1 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][21][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[0][21][x], 0.05
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gs1.insert(x,rd)
 			#第二天的功率因数
 			gs2 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][22][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[0][22][x], 0.05
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gs2.insert(x,rd)
 			#第三天的功率因数
 			gs3 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][23][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[0][23][x], 0.05
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gs3.insert(x,rd)
 			gl1 = []
 			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][18][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[0][18][x], 0.3
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gl1.insert(x,rd)
 			gl2 = []
 			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][19][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[0][19][x], 0.3
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gl2.insert(x,rd)
 			gl3 = []
 			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][20][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[0][20][x], 0.3
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gl3.insert(x,rd)
 			#三天用户总数据
 			ThreeDayNormalData = [a_dv1,b_dv1,c_dv1,a_dv2,b_dv2,c_dv2,a_dv3,b_dv3,c_dv3,a_c1,b_c1,c_c1,a_c2,b_c2,c_c2,a_c3,b_c3,c_c3,gl1,gl2,gl3,gs1,gs2,gs3]
@@ -622,109 +718,169 @@ def getAvolData():
 			nd = d[6]
 			#随机生成a相一天电压数据
 			a_dv1 = []
-			gauss = np.random.normal(0,0.07,24)
+			#gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][0][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = nd[0][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_dv1.insert(x,rd)
 			#随机生成b相一天电压数据
 			b_dv1 = []
-			gauss = np.random.normal(0,0.07,24)
+			#gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][1][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[6][1][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				b_dv1.insert(x,rd)
 			#随机生成c相电压一天数据
 			c_dv1 = []
-			gauss = np.random.normal(0,0.07,24)
+			#gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][2][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[6][2][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_dv1.insert(x,rd)
 			#第二天a相电压数据
 			a_dv2 = []
 			gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][3][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[6][3][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_dv2.insert(x,rd)
 			#第二天的b相电压
 			b_dv2 = []
 			gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][4][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[6][4][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				b_dv2.insert(x,rd)
 			#第二天的c相电压
 			c_dv2 = []
 			gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][5][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[6][5][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_dv2.insert(x,rd)
 			#第三天的a相电压
 			a_dv3 = []
 			gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][6][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[6][6][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_dv3.insert(x,rd)
 			#第三天的b相电压
 			b_dv3 = []
 			gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][7][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[6][7][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				b_dv3.insert(x,rd)
 			#第三天的c相电压
 			c_dv3 = []
-			gauss = np.random.normal(0,0.07,24)
+			#gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][8][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[6][8][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_dv3.insert(x,rd)
 			#第一天的a相电流
 			a_c1 = []
-			gauss = np.random.normal(0,0.2,24)
+			#gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][9][x] + gauss[x]
+				upper = 1
+				lower = 0
+				mu, sigma = d[6][9][x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_c1.insert(x,rd)
 			#第一天的b相电流
 			b_c1 = []
-			gauss = np.random.normal(0,0.2,24)
+			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][10][x] + gauss[x]
+				upper = 1 if 1.2*a_c1[x]>1 else 1.2*a_c1[x]
+				lower = 0.8*a_c1[x] 
+				mu, sigma = a_c1[x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				b_c1.insert(x,rd)
 			#第一天的c相电流
 			c_c1 = []
-			gauss = np.random.normal(0,0.2,24)
+			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][11][x] + gauss[x]
+				upper = 1 if 1.2*a_c1[x]>1 else 1.2*a_c1[x]
+				lower = 0.8*a_c1[x] 
+				mu, sigma = a_c1[x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_c1.insert(x,rd)
 			#第二天的a相电流
 			a_c2 = []
-			gauss = np.random.normal(0,0.2,24)
+			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][12][x] + gauss[x]
+				upper = 1
+				lower = 0
+				mu, sigma = d[6][12][x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_c2.insert(x,rd)
 			#第二天的b相电流
 			b_c2 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][13][x] + gauss[x]
+				upper = 1 if 1.2*a_c2[x]>1 else 1.2*a_c2[x]
+				lower = 0.8*a_c2[x] 
+				mu, sigma = a_c2[x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				b_c2.insert(x,rd)
 			#第二天的c相电流
 			c_c2 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][14][x] + gauss[x]
-				#minc = a_c2[x]*0.8
-				#maxc = 0
-				#if((a_c2[x]*1.2)<=1):
-				#	maxc = a_c2[x]*1.2
-				#else:
-				#	maxc = 1.0
-				#lower, upper = minc, maxc
-				#mu, sigma = a_c2[x], 0.008
-				#X = stats.truncnorm(
-    			#	(lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
-				#c_c2.insert(x,X.rvs(1))
+				upper = 1 if 1.2*a_c2[x]>1 else 1.2*a_c2[x]
+				lower = 0.8*a_c2[x] 
+				mu, sigma = a_c2[x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_c2.insert(x,rd)
 			a_c3 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][15][x] + gauss[x]
+				upper = 1
+				lower = 0
+				mu, sigma = d[6][15][x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_c3.insert(x,rd)
 			#第三天的a相电流
  			#a_c3 = []
@@ -737,46 +893,80 @@ def getAvolData():
 			b_c3 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][16][x] + gauss[x]
+				upper = 1 if 1.2*a_c3[x]>1 else 1.2*a_c3[x]
+				lower = 0.8*a_c3[x] 
+				mu, sigma = a_c3[x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				b_c3.insert(x,rd)
 			#第三天的c相电流
 			c_c3 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][17][x] + gauss[x]
+				upper = 1 if 1.2*a_c3[x]>1 else 1.2*a_c3[x]
+				lower = 0.8*a_c3[x] 
+				mu, sigma = a_c3[x], 0.05
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_c3.insert(x,rd)
 			#第一天的功率因数
 			gs1 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][21][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[6][21][x], 0.05
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gs1.insert(x,rd)
 			#第二天的功率因数
 			gs2 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][22][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[6][22][x], 0.05
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gs2.insert(x,rd)
 			#第三天的功率因数
 			gs3 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][23][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[6][23][x], 0.05
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gs3.insert(x,rd)
 			gl1 = []
 			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][18][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[6][18][x], 0.3
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gl1.insert(x,rd)
 			gl2 = []
 			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][19][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[6][19][x], 0.3
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gl2.insert(x,rd)
 			gl3 = []
 			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][20][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[6][20][x], 0.3
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gl3.insert(x,rd)
 			#三天用户总数据
 			ThreeDayNormalData = [a_dv1,b_dv1,c_dv1,a_dv2,b_dv2,c_dv2,a_dv3,b_dv3,c_dv3,a_c1,b_c1,c_c1,a_c2,b_c2,c_c2,a_c3,b_c3,c_c3,gl1,gl2,gl3,gs1,gs2,gs3]
@@ -789,109 +979,169 @@ def getAbnormalCulData():
 			nd = d[8]
 			#随机生成a相一天电压数据
 			a_dv1 = []
-			gauss = np.random.normal(0,0.07,24)
+			#gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][0][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = nd[0][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_dv1.insert(x,rd)
 			#随机生成b相一天电压数据
 			b_dv1 = []
-			gauss = np.random.normal(0,0.07,24)
+			#gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][1][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[8][1][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				b_dv1.insert(x,rd)
 			#随机生成c相电压一天数据
 			c_dv1 = []
-			gauss = np.random.normal(0,0.07,24)
+			#gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][2][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[8][2][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_dv1.insert(x,rd)
 			#第二天a相电压数据
 			a_dv2 = []
 			gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][3][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[8][3][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_dv2.insert(x,rd)
 			#第二天的b相电压
 			b_dv2 = []
 			gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][4][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[8][4][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				b_dv2.insert(x,rd)
 			#第二天的c相电压
 			c_dv2 = []
 			gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][5][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[8][5][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_dv2.insert(x,rd)
 			#第三天的a相电压
 			a_dv3 = []
 			gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][6][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[8][6][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_dv3.insert(x,rd)
 			#第三天的b相电压
 			b_dv3 = []
 			gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][7][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[8][7][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				b_dv3.insert(x,rd)
 			#第三天的c相电压
 			c_dv3 = []
-			gauss = np.random.normal(0,0.07,24)
+			#gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][8][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[8][8][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_dv3.insert(x,rd)
 			#第一天的a相电流
 			a_c1 = []
-			gauss = np.random.normal(0,0.2,24)
+			#gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][9][x] + gauss[x]
+				upper = 1
+				lower = 0
+				mu, sigma = d[8][9][x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_c1.insert(x,rd)
 			#第一天的b相电流
 			b_c1 = []
-			gauss = np.random.normal(0,0.2,24)
+			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][10][x] + gauss[x]
+				upper = 1 if 1.2*a_c1[x]>1 else 1.2*a_c1[x]
+				lower = 0.8*a_c1[x] 
+				mu, sigma = a_c1[x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				b_c1.insert(x,rd)
 			#第一天的c相电流
 			c_c1 = []
-			gauss = np.random.normal(0,0.2,24)
+			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][11][x] + gauss[x]
+				upper = 1 if 1.2*a_c1[x]>1 else 1.2*a_c1[x]
+				lower = 0.8*a_c1[x] 
+				mu, sigma = a_c1[x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_c1.insert(x,rd)
 			#第二天的a相电流
 			a_c2 = []
-			gauss = np.random.normal(0,0.2,24)
+			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][12][x] + gauss[x]
+				upper = 1
+				lower = 0
+				mu, sigma = d[8][12][x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_c2.insert(x,rd)
 			#第二天的b相电流
 			b_c2 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][13][x] + gauss[x]
+				upper = 1 if 1.2*a_c2[x]>1 else 1.2*a_c2[x]
+				lower = 0.8*a_c2[x] 
+				mu, sigma = a_c2[x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				b_c2.insert(x,rd)
 			#第二天的c相电流
 			c_c2 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][14][x] + gauss[x]
-				#minc = a_c2[x]*0.8
-				#maxc = 0
-				#if((a_c2[x]*1.2)<=1):
-				#	maxc = a_c2[x]*1.2
-				#else:
-				#	maxc = 1.0
-				#lower, upper = minc, maxc
-				#mu, sigma = a_c2[x], 0.008
-				#X = stats.truncnorm(
-    			#	(lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
-				#c_c2.insert(x,X.rvs(1))
+				upper = 1 if 1.2*a_c2[x]>1 else 1.2*a_c2[x]
+				lower = 0.8*a_c2[x] 
+				mu, sigma = a_c2[x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_c2.insert(x,rd)
 			a_c3 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][15][x] + gauss[x]
+				upper = 1
+				lower = 0
+				mu, sigma = d[8][15][x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_c3.insert(x,rd)
 			#第三天的a相电流
  			#a_c3 = []
@@ -904,46 +1154,80 @@ def getAbnormalCulData():
 			b_c3 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][16][x] + gauss[x]
+				upper = 1 if 1.2*a_c3[x]>1 else 1.2*a_c3[x]
+				lower = 0.8*a_c3[x] 
+				mu, sigma = a_c3[x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				b_c3.insert(x,rd)
 			#第三天的c相电流
 			c_c3 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][17][x] + gauss[x]
+				upper = 1 if 1.2*a_c3[x]>1 else 1.2*a_c3[x]
+				lower = 0.8*a_c3[x] 
+				mu, sigma = a_c3[x], 0.05
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_c3.insert(x,rd)
 			#第一天的功率因数
 			gs1 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][21][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[8][21][x], 0.05
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gs1.insert(x,rd)
 			#第二天的功率因数
 			gs2 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][22][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[8][22][x], 0.05
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gs2.insert(x,rd)
 			#第三天的功率因数
 			gs3 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][23][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[8][23][x], 0.05
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gs3.insert(x,rd)
 			gl1 = []
 			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][18][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[8][18][x], 0.3
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gl1.insert(x,rd)
 			gl2 = []
 			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][19][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[8][19][x], 0.3
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gl2.insert(x,rd)
 			gl3 = []
 			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][20][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[8][20][x], 0.3
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gl3.insert(x,rd)
 			#三天用户总数据
 			ThreeDayNormalData = [a_dv1,b_dv1,c_dv1,a_dv2,b_dv2,c_dv2,a_dv3,b_dv3,c_dv3,a_c1,b_c1,c_c1,a_c2,b_c2,c_c2,a_c3,b_c3,c_c3,gl1,gl2,gl3,gs1,gs2,gs3]
@@ -955,109 +1239,169 @@ def getAbnormalPowerFactorData():
 			nd = d[13]
 			#随机生成a相一天电压数据
 			a_dv1 = []
-			gauss = np.random.normal(0,0.07,24)
+			#gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][0][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = nd[0][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_dv1.insert(x,rd)
 			#随机生成b相一天电压数据
 			b_dv1 = []
-			gauss = np.random.normal(0,0.07,24)
+			#gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][1][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[13][1][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				b_dv1.insert(x,rd)
 			#随机生成c相电压一天数据
 			c_dv1 = []
-			gauss = np.random.normal(0,0.07,24)
+			#gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][2][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[13][2][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_dv1.insert(x,rd)
 			#第二天a相电压数据
 			a_dv2 = []
 			gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][3][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[13][3][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_dv2.insert(x,rd)
 			#第二天的b相电压
 			b_dv2 = []
 			gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][4][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[13][4][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				b_dv2.insert(x,rd)
 			#第二天的c相电压
 			c_dv2 = []
 			gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][5][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[13][5][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_dv2.insert(x,rd)
 			#第三天的a相电压
 			a_dv3 = []
 			gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][6][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[13][6][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_dv3.insert(x,rd)
 			#第三天的b相电压
 			b_dv3 = []
 			gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][7][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[13][7][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				b_dv3.insert(x,rd)
 			#第三天的c相电压
 			c_dv3 = []
-			gauss = np.random.normal(0,0.07,24)
+			#gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][8][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[13][8][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_dv3.insert(x,rd)
 			#第一天的a相电流
 			a_c1 = []
-			gauss = np.random.normal(0,0.2,24)
+			#gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][9][x] + gauss[x]
+				upper = 1
+				lower = 0
+				mu, sigma = d[13][9][x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_c1.insert(x,rd)
 			#第一天的b相电流
 			b_c1 = []
-			gauss = np.random.normal(0,0.2,24)
+			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][10][x] + gauss[x]
+				upper = 1 if 1.2*a_c1[x]>1 else 1.2*a_c1[x]
+				lower = 0.8*a_c1[x] 
+				mu, sigma = a_c1[x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				b_c1.insert(x,rd)
 			#第一天的c相电流
 			c_c1 = []
-			gauss = np.random.normal(0,0.2,24)
+			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][11][x] + gauss[x]
+				upper = 1 if 1.2*a_c1[x]>1 else 1.2*a_c1[x]
+				lower = 0.8*a_c1[x] 
+				mu, sigma = a_c1[x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_c1.insert(x,rd)
 			#第二天的a相电流
 			a_c2 = []
-			gauss = np.random.normal(0,0.2,24)
+			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][12][x] + gauss[x]
+				upper = 1
+				lower = 0
+				mu, sigma = d[13][12][x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_c2.insert(x,rd)
 			#第二天的b相电流
 			b_c2 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][13][x] + gauss[x]
+				upper = 1 if 1.2*a_c2[x]>1 else 1.2*a_c2[x]
+				lower = 0.8*a_c2[x] 
+				mu, sigma = a_c2[x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				b_c2.insert(x,rd)
 			#第二天的c相电流
 			c_c2 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][14][x] + gauss[x]
-				#minc = a_c2[x]*0.8
-				#maxc = 0
-				#if((a_c2[x]*1.2)<=1):
-				#	maxc = a_c2[x]*1.2
-				#else:
-				#	maxc = 1.0
-				#lower, upper = minc, maxc
-				#mu, sigma = a_c2[x], 0.008
-				#X = stats.truncnorm(
-    			#	(lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
-				#c_c2.insert(x,X.rvs(1))
+				upper = 1 if 1.2*a_c2[x]>1 else 1.2*a_c2[x]
+				lower = 0.8*a_c2[x] 
+				mu, sigma = a_c2[x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_c2.insert(x,rd)
 			a_c3 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][15][x] + gauss[x]
+				upper = 1
+				lower = 0
+				mu, sigma = d[13][15][x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_c3.insert(x,rd)
 			#第三天的a相电流
  			#a_c3 = []
@@ -1070,160 +1414,255 @@ def getAbnormalPowerFactorData():
 			b_c3 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][16][x] + gauss[x]
+				upper = 1 if 1.2*a_c3[x]>1 else 1.2*a_c3[x]
+				lower = 0.8*a_c3[x] 
+				mu, sigma = a_c3[x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				b_c3.insert(x,rd)
 			#第三天的c相电流
 			c_c3 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][17][x] + gauss[x]
+				upper = 1 if 1.2*a_c3[x]>1 else 1.2*a_c3[x]
+				lower = 0.8*a_c3[x] 
+				mu, sigma = a_c3[x], 0.05
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_c3.insert(x,rd)
 			#第一天的功率因数
 			gs1 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][21][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[13][21][x], 0.05
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gs1.insert(x,rd)
 			#第二天的功率因数
 			gs2 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][22][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[13][22][x], 0.05
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gs2.insert(x,rd)
 			#第三天的功率因数
 			gs3 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][23][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[13][23][x], 0.05
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gs3.insert(x,rd)
 			gl1 = []
 			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][18][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[13][18][x], 0.3
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gl1.insert(x,rd)
 			gl2 = []
 			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][19][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[13][19][x], 0.3
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gl2.insert(x,rd)
 			gl3 = []
 			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][20][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[13][20][x], 0.3
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gl3.insert(x,rd)
 			#三天用户总数据
 			ThreeDayNormalData = [a_dv1,b_dv1,c_dv1,a_dv2,b_dv2,c_dv2,a_dv3,b_dv3,c_dv3,a_c1,b_c1,c_c1,a_c2,b_c2,c_c2,a_c3,b_c3,c_c3,gl1,gl2,gl3,gs1,gs2,gs3]
 			return ThreeDayNormalData
 #34反极性数据
+####
 def getReversePoData():
 			d = np.load('34gd_data.npy')
 			#电压异常模板数据nd
 			nd = d[10]
 			#随机生成a相一天电压数据
 			a_dv1 = []
-			gauss = np.random.normal(0,0.07,24)
+			#gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][0][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = nd[0][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_dv1.insert(x,rd)
 			#随机生成b相一天电压数据
 			b_dv1 = []
-			gauss = np.random.normal(0,0.07,24)
+			#gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][1][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[10][1][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				b_dv1.insert(x,rd)
 			#随机生成c相电压一天数据
 			c_dv1 = []
-			gauss = np.random.normal(0,0.07,24)
+			#gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][2][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[10][2][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_dv1.insert(x,rd)
 			#第二天a相电压数据
 			a_dv2 = []
 			gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][3][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[10][3][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_dv2.insert(x,rd)
 			#第二天的b相电压
 			b_dv2 = []
 			gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][4][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[10][4][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				b_dv2.insert(x,rd)
 			#第二天的c相电压
 			c_dv2 = []
 			gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][5][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[10][5][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_dv2.insert(x,rd)
 			#第三天的a相电压
 			a_dv3 = []
 			gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][6][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[10][6][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_dv3.insert(x,rd)
 			#第三天的b相电压
 			b_dv3 = []
 			gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][7][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[10][7][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				b_dv3.insert(x,rd)
 			#第三天的c相电压
 			c_dv3 = []
-			gauss = np.random.normal(0,0.07,24)
+			#gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][8][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[10][8][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_dv3.insert(x,rd)
 			#第一天的a相电流
 			a_c1 = []
-			gauss = np.random.normal(0,0.2,24)
+			#gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][9][x] + gauss[x]
+				upper = 1
+				lower = 0
+				mu, sigma = d[10][9][x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_c1.insert(x,rd)
 			#第一天的b相电流
 			b_c1 = []
-			gauss = np.random.normal(0,0.2,24)
+			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][10][x] + gauss[x]
+				upper = 1 if 1.2*a_c1[x]>1 else 1.2*a_c1[x]
+				lower = 0.8*a_c1[x] 
+				mu, sigma = a_c1[x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				b_c1.insert(x,rd)
 			#第一天的c相电流
 			c_c1 = []
-			gauss = np.random.normal(0,0.2,24)
+			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][11][x] + gauss[x]
+				upper = 1 if 1.2*a_c1[x]>1 else 1.2*a_c1[x]
+				lower = 0.8*a_c1[x] 
+				mu, sigma = a_c1[x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_c1.insert(x,rd)
 			#第二天的a相电流
 			a_c2 = []
-			gauss = np.random.normal(0,0.2,24)
+			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][12][x] + gauss[x]
+				upper = 1
+				lower = 0
+				mu, sigma = d[10][12][x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_c2.insert(x,rd)
 			#第二天的b相电流
 			b_c2 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][13][x] + gauss[x]
+				upper = 1 if 1.2*a_c2[x]>1 else 1.2*a_c2[x]
+				lower = 0.8*a_c2[x] 
+				mu, sigma = a_c2[x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				b_c2.insert(x,rd)
 			#第二天的c相电流
 			c_c2 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][14][x] + gauss[x]
-				#minc = a_c2[x]*0.8
-				#maxc = 0
-				#if((a_c2[x]*1.2)<=1):
-				#	maxc = a_c2[x]*1.2
-				#else:
-				#	maxc = 1.0
-				#lower, upper = minc, maxc
-				#mu, sigma = a_c2[x], 0.008
-				#X = stats.truncnorm(
-    			#	(lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
-				#c_c2.insert(x,X.rvs(1))
+				upper = 1 if 1.2*a_c2[x]>1 else 1.2*a_c2[x]
+				lower = 0.8*a_c2[x] 
+				mu, sigma = a_c2[x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_c2.insert(x,rd)
 			a_c3 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][15][x] + gauss[x]
+				upper = 1
+				lower = 0
+				mu, sigma = d[10][15][x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_c3.insert(x,rd)
 			#第三天的a相电流
  			#a_c3 = []
@@ -1236,46 +1675,80 @@ def getReversePoData():
 			b_c3 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][16][x] + gauss[x]
+				upper = 1 if 1.2*a_c3[x]>1 else 1.2*a_c3[x]
+				lower = 0.8*a_c3[x] 
+				mu, sigma = a_c3[x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				b_c3.insert(x,rd)
 			#第三天的c相电流
 			c_c3 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][17][x] + gauss[x]
+				upper = 1 if 1.2*a_c3[x]>1 else 1.2*a_c3[x]
+				lower = 0.8*a_c3[x] 
+				mu, sigma = a_c3[x], 0.05
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_c3.insert(x,rd)
 			#第一天的功率因数
 			gs1 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][21][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[10][21][x], 0.05
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gs1.insert(x,rd)
 			#第二天的功率因数
 			gs2 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][22][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[10][22][x], 0.05
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gs2.insert(x,rd)
 			#第三天的功率因数
 			gs3 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][23][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[10][23][x], 0.05
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gs3.insert(x,rd)
 			gl1 = []
 			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][18][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[10][18][x], 0.3
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gl1.insert(x,rd)
 			gl2 = []
 			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][19][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[10][19][x], 0.3
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gl2.insert(x,rd)
 			gl3 = []
 			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][20][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[10][20][x], 0.3
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gl3.insert(x,rd)
 			#三天用户总数据
 			ThreeDayNormalData = [a_dv1,b_dv1,c_dv1,a_dv2,b_dv2,c_dv2,a_dv3,b_dv3,c_dv3,a_c1,b_c1,c_c1,a_c2,b_c2,c_c2,a_c3,b_c3,c_c3,gl1,gl2,gl3,gs1,gs2,gs3]
@@ -1287,81 +1760,118 @@ def getNormalData33():
 			nd = d[0]
 			#随机生成a相一天电压数据
 			a_dv1 = []
-			gauss = np.random.normal(0,0.07,24)
+			#gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][0][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = nd[0][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_dv1.insert(x,rd)
-			#随机生成b相一天电压数据
-			
 			#随机生成c相电压一天数据
 			c_dv1 = []
-			gauss = np.random.normal(0,0.07,24)
+			#gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][1][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[0][1][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_dv1.insert(x,rd)
 			#第二天a相电压数据
 			a_dv2 = []
 			gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][2][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[0][2][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_dv2.insert(x,rd)
+			
 			#第二天的c相电压
 			c_dv2 = []
 			gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][3][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[0][3][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_dv2.insert(x,rd)
 			#第三天的a相电压
 			a_dv3 = []
 			gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][4][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[0][4][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_dv3.insert(x,rd)
 			#第三天的c相电压
 			c_dv3 = []
-			gauss = np.random.normal(0,0.07,24)
+			#gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][5][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[0][5][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_dv3.insert(x,rd)
 			#第一天的a相电流
 			a_c1 = []
-			gauss = np.random.normal(0,0.2,24)
+			#gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][6][x] + gauss[x]
+				upper = 1
+				lower = 0
+				mu, sigma = d[0][6][x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_c1.insert(x,rd)
 			#第一天的c相电流
 			c_c1 = []
-			gauss = np.random.normal(0,0.2,24)
+			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][7][x] + gauss[x]
+				upper = 1 if 1.2*a_c1[x]>1 else 1.2*a_c1[x]
+				lower = 0.8*a_c1[x] 
+				mu, sigma = a_c1[x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_c1.insert(x,rd)
 			#第二天的a相电流
 			a_c2 = []
-			gauss = np.random.normal(0,0.2,24)
+			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][8][x] + gauss[x]
+				upper = 1
+				lower = 0
+				mu, sigma = d[0][8][x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_c2.insert(x,rd)
 			#第二天的c相电流
 			c_c2 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][9][x] + gauss[x]
-				#minc = a_c2[x]*0.8
-				#maxc = 0
-				#if((a_c2[x]*1.2)<=1):
-				#	maxc = a_c2[x]*1.2
-				#else:
-				#	maxc = 1.0
-				#lower, upper = minc, maxc
-				#mu, sigma = a_c2[x], 0.008
-				#X = stats.truncnorm(
-    			#	(lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
-				#c_c2.insert(x,X.rvs(1))
+				upper = 1 if 1.2*a_c2[x]>1 else 1.2*a_c2[x]
+				lower = 0.8*a_c2[x] 
+				mu, sigma = a_c2[x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_c2.insert(x,rd)
 			a_c3 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][10][x] + gauss[x]
+				upper = 1
+				lower = 0
+				mu, sigma = d[0][10][x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_c3.insert(x,rd)
 			#第三天的a相电流
  			#a_c3 = []
@@ -1374,40 +1884,69 @@ def getNormalData33():
 			c_c3 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][11][x] + gauss[x]
+				upper = 1 if 1.2*a_c3[x]>1 else 1.2*a_c3[x]
+				lower = 0.8*a_c3[x] 
+				mu, sigma = a_c3[x], 0.05
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_c3.insert(x,rd)
 			#第一天的功率因数
 			gs1 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][15][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[0][16][x], 0.05
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gs1.insert(x,rd)
 			#第二天的功率因数
 			gs2 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][16][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[0][17][x], 0.05
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gs2.insert(x,rd)
 			#第三天的功率因数
 			gs3 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][17][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[0][17][x], 0.05
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gs3.insert(x,rd)
 			gl1 = []
 			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][12][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[0][13][x], 0.3
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gl1.insert(x,rd)
 			gl2 = []
 			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][13][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[0][14][x], 0.3
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gl2.insert(x,rd)
 			gl3 = []
 			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][14][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[0][15][x], 0.3
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gl3.insert(x,rd)
 			#三天用户总数据
 			ThreeDayNormalData = [a_dv1,c_dv1,a_dv2,c_dv2,a_dv3,c_dv3,a_c1,c_c1,a_c2,c_c2,a_c3,c_c3,gl1,gl2,gl3,gs1,gs2,gs3]
@@ -1420,81 +1959,118 @@ def getAbnormalVolData33():
 			nd = d[7]
 			#随机生成a相一天电压数据
 			a_dv1 = []
-			gauss = np.random.normal(0,0.07,24)
+			#gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][0][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = nd[0][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_dv1.insert(x,rd)
-			#随机生成b相一天电压数据
-			
 			#随机生成c相电压一天数据
 			c_dv1 = []
-			gauss = np.random.normal(0,0.07,24)
+			#gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][1][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[7][1][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_dv1.insert(x,rd)
 			#第二天a相电压数据
 			a_dv2 = []
 			gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][2][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[7][2][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_dv2.insert(x,rd)
+			
 			#第二天的c相电压
 			c_dv2 = []
 			gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][3][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[7][3][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_dv2.insert(x,rd)
 			#第三天的a相电压
 			a_dv3 = []
 			gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][4][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[7][4][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_dv3.insert(x,rd)
 			#第三天的c相电压
 			c_dv3 = []
-			gauss = np.random.normal(0,0.07,24)
+			#gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][5][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[7][5][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_dv3.insert(x,rd)
 			#第一天的a相电流
 			a_c1 = []
-			gauss = np.random.normal(0,0.2,24)
+			#gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][6][x] + gauss[x]
+				upper = 1
+				lower = 0
+				mu, sigma = d[7][6][x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_c1.insert(x,rd)
 			#第一天的c相电流
 			c_c1 = []
-			gauss = np.random.normal(0,0.2,24)
+			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][7][x] + gauss[x]
+				upper = 1 if 1.2*a_c1[x]>1 else 1.2*a_c1[x]
+				lower = 0.8*a_c1[x] 
+				mu, sigma = a_c1[x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_c1.insert(x,rd)
 			#第二天的a相电流
 			a_c2 = []
-			gauss = np.random.normal(0,0.2,24)
+			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][8][x] + gauss[x]
+				upper = 1
+				lower = 0
+				mu, sigma = d[7][8][x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_c2.insert(x,rd)
 			#第二天的c相电流
 			c_c2 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][9][x] + gauss[x]
-				#minc = a_c2[x]*0.8
-				#maxc = 0
-				#if((a_c2[x]*1.2)<=1):
-				#	maxc = a_c2[x]*1.2
-				#else:
-				#	maxc = 1.0
-				#lower, upper = minc, maxc
-				#mu, sigma = a_c2[x], 0.008
-				#X = stats.truncnorm(
-    			#	(lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
-				#c_c2.insert(x,X.rvs(1))
+				upper = 1 if 1.2*a_c2[x]>1 else 1.2*a_c2[x]
+				lower = 0.8*a_c2[x] 
+				mu, sigma = a_c2[x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_c2.insert(x,rd)
 			a_c3 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][10][x] + gauss[x]
+				upper = 1
+				lower = 0
+				mu, sigma = d[7][10][x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_c3.insert(x,rd)
 			#第三天的a相电流
  			#a_c3 = []
@@ -1507,40 +2083,69 @@ def getAbnormalVolData33():
 			c_c3 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][11][x] + gauss[x]
+				upper = 1 if 1.2*a_c3[x]>1 else 1.2*a_c3[x]
+				lower = 0.8*a_c3[x] 
+				mu, sigma = a_c3[x], 0.05
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_c3.insert(x,rd)
 			#第一天的功率因数
 			gs1 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][15][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[7][15][x], 0.05
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gs1.insert(x,rd)
 			#第二天的功率因数
 			gs2 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][16][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[7][16][x], 0.05
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gs2.insert(x,rd)
 			#第三天的功率因数
 			gs3 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][17][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[7][17][x], 0.05
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gs3.insert(x,rd)
 			gl1 = []
 			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][12][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[7][12][x], 0.3
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gl1.insert(x,rd)
 			gl2 = []
 			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][13][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[7][13][x], 0.3
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gl2.insert(x,rd)
 			gl3 = []
 			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][14][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[7][14][x], 0.3
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gl3.insert(x,rd)
 			#三天用户总数据
 			ThreeDayNormalData = [a_dv1,c_dv1,a_dv2,c_dv2,a_dv3,c_dv3,a_c1,c_c1,a_c2,c_c2,a_c3,c_c3,gl1,gl2,gl3,gs1,gs2,gs3]
@@ -1552,81 +2157,118 @@ def getAbnormalCData33():
 			nd = d[5]
 			#随机生成a相一天电压数据
 			a_dv1 = []
-			gauss = np.random.normal(0,0.07,24)
+			#gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][0][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = nd[0][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_dv1.insert(x,rd)
-			#随机生成b相一天电压数据
-			
 			#随机生成c相电压一天数据
 			c_dv1 = []
-			gauss = np.random.normal(0,0.07,24)
+			#gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][1][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[5][1][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_dv1.insert(x,rd)
 			#第二天a相电压数据
 			a_dv2 = []
 			gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][2][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[5][2][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_dv2.insert(x,rd)
+			
 			#第二天的c相电压
 			c_dv2 = []
 			gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][3][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[5][3][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_dv2.insert(x,rd)
 			#第三天的a相电压
 			a_dv3 = []
 			gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][4][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[5][4][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_dv3.insert(x,rd)
 			#第三天的c相电压
 			c_dv3 = []
-			gauss = np.random.normal(0,0.07,24)
+			#gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][5][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[5][5][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_dv3.insert(x,rd)
 			#第一天的a相电流
 			a_c1 = []
-			gauss = np.random.normal(0,0.2,24)
+			#gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][6][x] + gauss[x]
+				upper = 1
+				lower = 0
+				mu, sigma = d[5][6][x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_c1.insert(x,rd)
 			#第一天的c相电流
 			c_c1 = []
-			gauss = np.random.normal(0,0.2,24)
+			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][7][x] + gauss[x]
+				upper = 1 if 1.2*a_c1[x]>1 else 1.2*a_c1[x]
+				lower = 0.8*a_c1[x] 
+				mu, sigma = a_c1[x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_c1.insert(x,rd)
 			#第二天的a相电流
 			a_c2 = []
-			gauss = np.random.normal(0,0.2,24)
+			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][8][x] + gauss[x]
+				upper = 1
+				lower = 0
+				mu, sigma = d[5][8][x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_c2.insert(x,rd)
 			#第二天的c相电流
 			c_c2 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][9][x] + gauss[x]
-				#minc = a_c2[x]*0.8
-				#maxc = 0
-				#if((a_c2[x]*1.2)<=1):
-				#	maxc = a_c2[x]*1.2
-				#else:
-				#	maxc = 1.0
-				#lower, upper = minc, maxc
-				#mu, sigma = a_c2[x], 0.008
-				#X = stats.truncnorm(
-    			#	(lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
-				#c_c2.insert(x,X.rvs(1))
+				upper = 1 if 1.2*a_c2[x]>1 else 1.2*a_c2[x]
+				lower = 0.8*a_c2[x] 
+				mu, sigma = a_c2[x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_c2.insert(x,rd)
 			a_c3 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][10][x] + gauss[x]
+				upper = 1
+				lower = 0
+				mu, sigma = d[5][10][x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_c3.insert(x,rd)
 			#第三天的a相电流
  			#a_c3 = []
@@ -1639,40 +2281,69 @@ def getAbnormalCData33():
 			c_c3 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][11][x] + gauss[x]
+				upper = 1 if 1.2*a_c3[x]>1 else 1.2*a_c3[x]
+				lower = 0.8*a_c3[x] 
+				mu, sigma = a_c3[x], 0.05
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_c3.insert(x,rd)
 			#第一天的功率因数
 			gs1 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][15][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[5][15][x], 0.05
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gs1.insert(x,rd)
 			#第二天的功率因数
 			gs2 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][16][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[0][16][x], 0.05
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gs2.insert(x,rd)
 			#第三天的功率因数
 			gs3 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][17][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[0][17][x], 0.05
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gs3.insert(x,rd)
 			gl1 = []
 			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][12][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[0][12][x], 0.3
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gl1.insert(x,rd)
 			gl2 = []
 			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][13][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[0][13][x], 0.3
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gl2.insert(x,rd)
 			gl3 = []
 			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][14][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[0][14][x], 0.3
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gl3.insert(x,rd)
 			#三天用户总数据
 			ThreeDayNormalData = [a_dv1,c_dv1,a_dv2,c_dv2,a_dv3,c_dv3,a_c1,c_c1,a_c2,c_c2,a_c3,c_c3,gl1,gl2,gl3,gs1,gs2,gs3]
@@ -1684,81 +2355,118 @@ def getRData33():
 			nd = d[10]
 			#随机生成a相一天电压数据
 			a_dv1 = []
-			gauss = np.random.normal(0,0.07,24)
+			#gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][0][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = nd[0][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_dv1.insert(x,rd)
-			#随机生成b相一天电压数据
-			
 			#随机生成c相电压一天数据
 			c_dv1 = []
-			gauss = np.random.normal(0,0.07,24)
+			#gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][1][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[10][1][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_dv1.insert(x,rd)
 			#第二天a相电压数据
 			a_dv2 = []
 			gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][2][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[10][2][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_dv2.insert(x,rd)
+			
 			#第二天的c相电压
 			c_dv2 = []
 			gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][3][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[10][3][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_dv2.insert(x,rd)
 			#第三天的a相电压
 			a_dv3 = []
 			gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][4][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[10][4][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_dv3.insert(x,rd)
 			#第三天的c相电压
 			c_dv3 = []
-			gauss = np.random.normal(0,0.07,24)
+			#gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][5][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[10][5][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_dv3.insert(x,rd)
 			#第一天的a相电流
 			a_c1 = []
-			gauss = np.random.normal(0,0.2,24)
+			#gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][6][x] + gauss[x]
+				upper = 1
+				lower = 0
+				mu, sigma = d[10][6][x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_c1.insert(x,rd)
 			#第一天的c相电流
 			c_c1 = []
-			gauss = np.random.normal(0,0.2,24)
+			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][7][x] + gauss[x]
+				upper = 1 if 1.2*a_c1[x]>1 else 1.2*a_c1[x]
+				lower = 0.8*a_c1[x] 
+				mu, sigma = a_c1[x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_c1.insert(x,rd)
 			#第二天的a相电流
 			a_c2 = []
-			gauss = np.random.normal(0,0.2,24)
+			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][8][x] + gauss[x]
+				upper = 1
+				lower = 0
+				mu, sigma = d[10][8][x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_c2.insert(x,rd)
 			#第二天的c相电流
 			c_c2 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][9][x] + gauss[x]
-				#minc = a_c2[x]*0.8
-				#maxc = 0
-				#if((a_c2[x]*1.2)<=1):
-				#	maxc = a_c2[x]*1.2
-				#else:
-				#	maxc = 1.0
-				#lower, upper = minc, maxc
-				#mu, sigma = a_c2[x], 0.008
-				#X = stats.truncnorm(
-    			#	(lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
-				#c_c2.insert(x,X.rvs(1))
+				upper = 1 if 1.2*a_c2[x]>1 else 1.2*a_c2[x]
+				lower = 0.8*a_c2[x] 
+				mu, sigma = a_c2[x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_c2.insert(x,rd)
 			a_c3 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][10][x] + gauss[x]
+				upper = 1
+				lower = 0
+				mu, sigma = d[10][10][x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_c3.insert(x,rd)
 			#第三天的a相电流
  			#a_c3 = []
@@ -1771,40 +2479,69 @@ def getRData33():
 			c_c3 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][11][x] + gauss[x]
+				upper = 1 if 1.2*a_c3[x]>1 else 1.2*a_c3[x]
+				lower = 0.8*a_c3[x] 
+				mu, sigma = a_c3[x], 0.05
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_c3.insert(x,rd)
 			#第一天的功率因数
 			gs1 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][15][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[10][15][x], 0.05
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gs1.insert(x,rd)
 			#第二天的功率因数
 			gs2 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][16][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[10][16][x], 0.05
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gs2.insert(x,rd)
 			#第三天的功率因数
 			gs3 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][17][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[10][17][x], 0.05
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gs3.insert(x,rd)
 			gl1 = []
 			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][12][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[10][12][x], 0.3
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gl1.insert(x,rd)
 			gl2 = []
 			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][13][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[10][13][x], 0.3
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gl2.insert(x,rd)
 			gl3 = []
 			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][14][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[10][14][x], 0.3
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gl3.insert(x,rd)
 			#三天用户总数据
 			ThreeDayNormalData = [a_dv1,c_dv1,a_dv2,c_dv2,a_dv3,c_dv3,a_c1,c_c1,a_c2,c_c2,a_c3,c_c3,gl1,gl2,gl3,gs1,gs2,gs3]
@@ -1816,81 +2553,118 @@ def getApfData33():
 			nd = d[11]
 			#随机生成a相一天电压数据
 			a_dv1 = []
-			gauss = np.random.normal(0,0.07,24)
+			#gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][0][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = nd[0][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_dv1.insert(x,rd)
-			#随机生成b相一天电压数据
-			
 			#随机生成c相电压一天数据
 			c_dv1 = []
-			gauss = np.random.normal(0,0.07,24)
+			#gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][1][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[11][1][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_dv1.insert(x,rd)
 			#第二天a相电压数据
 			a_dv2 = []
 			gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][2][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[11][2][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_dv2.insert(x,rd)
+			
 			#第二天的c相电压
 			c_dv2 = []
 			gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][3][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[11][3][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_dv2.insert(x,rd)
 			#第三天的a相电压
 			a_dv3 = []
 			gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][4][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[11][4][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_dv3.insert(x,rd)
 			#第三天的c相电压
 			c_dv3 = []
-			gauss = np.random.normal(0,0.07,24)
+			#gauss = np.random.normal(0,0.07,24)
 			for x in range(0,24):
-				rd = d[0][5][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[11][5][x], 0.07
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_dv3.insert(x,rd)
 			#第一天的a相电流
 			a_c1 = []
-			gauss = np.random.normal(0,0.2,24)
+			#gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][6][x] + gauss[x]
+				upper = 1
+				lower = 0
+				mu, sigma = d[11][6][x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_c1.insert(x,rd)
 			#第一天的c相电流
 			c_c1 = []
-			gauss = np.random.normal(0,0.2,24)
+			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][7][x] + gauss[x]
+				upper = 1 if 1.2*a_c1[x]>1 else 1.2*a_c1[x]
+				lower = 0.8*a_c1[x] 
+				mu, sigma = a_c1[x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_c1.insert(x,rd)
 			#第二天的a相电流
 			a_c2 = []
-			gauss = np.random.normal(0,0.2,24)
+			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][8][x] + gauss[x]
+				upper = 1
+				lower = 0
+				mu, sigma = d[11][8][x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_c2.insert(x,rd)
 			#第二天的c相电流
 			c_c2 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][9][x] + gauss[x]
-				#minc = a_c2[x]*0.8
-				#maxc = 0
-				#if((a_c2[x]*1.2)<=1):
-				#	maxc = a_c2[x]*1.2
-				#else:
-				#	maxc = 1.0
-				#lower, upper = minc, maxc
-				#mu, sigma = a_c2[x], 0.008
-				#X = stats.truncnorm(
-    			#	(lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
-				#c_c2.insert(x,X.rvs(1))
+				upper = 1 if 1.2*a_c2[x]>1 else 1.2*a_c2[x]
+				lower = 0.8*a_c2[x] 
+				mu, sigma = a_c2[x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_c2.insert(x,rd)
 			a_c3 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][10][x] + gauss[x]
+				upper = 1
+				lower = 0
+				mu, sigma = d[11][10][x], 0.2
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				a_c3.insert(x,rd)
 			#第三天的a相电流
  			#a_c3 = []
@@ -1903,40 +2677,69 @@ def getApfData33():
 			c_c3 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][11][x] + gauss[x]
+				upper = 1 if 1.2*a_c3[x]>1 else 1.2*a_c3[x]
+				lower = 0.8*a_c3[x] 
+				mu, sigma = a_c3[x], 0.05
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				c_c3.insert(x,rd)
 			#第一天的功率因数
 			gs1 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][15][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[11][15][x], 0.05
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gs1.insert(x,rd)
 			#第二天的功率因数
 			gs2 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][16][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[11][16][x], 0.05
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gs2.insert(x,rd)
 			#第三天的功率因数
 			gs3 = []
 			gauss = np.random.normal(0,0.2,24)
 			for x in range(0,24):
-				rd = d[0][17][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[11][17][x], 0.05
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gs3.insert(x,rd)
 			gl1 = []
 			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][12][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[11][12][x], 0.3
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gl1.insert(x,rd)
 			gl2 = []
 			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][13][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[11][13][x], 0.3
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gl2.insert(x,rd)
 			gl3 = []
 			gauss = np.random.normal(0,0.05,24)
 			for x in range(0,24):
-				rd = d[0][14][x] + gauss[x]
+				lower, upper = 0, 1
+				mu, sigma = d[11][14][x], 0.3
+				X = stats.truncnorm(
+ 						   (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				rd = X.rvs(1)[0]
 				gl3.insert(x,rd)
 			#三天用户总数据
 			ThreeDayNormalData = [a_dv1,c_dv1,a_dv2,c_dv2,a_dv3,c_dv3,a_c1,c_c1,a_c2,c_c2,a_c3,c_c3,gl1,gl2,gl3,gs1,gs2,gs3]
