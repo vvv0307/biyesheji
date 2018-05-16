@@ -20,11 +20,6 @@ from productdata import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('prodata',views.productdata),
-    path('getcharts/vol',views.getvol),
-    path('getcharts/voldevia',views.getvoldevia),
-    path('getcharts/cbalance',views.getCurBalance),
-    path('getcharts/vbalance',views.getVolBalance),
-    path('getcharts/cu',views.getCu),
-    path('getcharts/pf',views.getPowerFactor),
+    path('submit',views.submit),
     path('test',views.test)
 ]

@@ -1,0 +1,6 @@
+model_checkpoint_path: "/home/cwx/ae/Results/test/34/5000_1000_10_0.001_100_150_0.3_SSL/Saved_models/model.ckpt-51"
+all_model_checkpoint_paths: "/home/cwx/ae/Results/test/34/5000_1000_10_0.001_100_150_0.3_SSL/Saved_models/model.ckpt-47"
+all_model_checkpoint_paths: "/home/cwx/ae/Results/test/34/5000_1000_10_0.001_100_150_0.3_SSL/Saved_models/model.ckpt-48"
+all_model_checkpoint_paths: "/home/cwx/ae/Results/test/34/5000_1000_10_0.001_100_150_0.3_SSL/Saved_models/model.ckpt-49"
+all_model_checkpoint_paths: "/home/cwx/ae/Results/test/34/5000_1000_10_0.001_100_150_0.3_SSL/Saved_models/model.ckpt-50"
+all_model_checkpoint_paths: "/home/cwx/ae/Results/test/34/5000_1000_10_0.001_100_150_0.3_SSL/Saved_models/model.ckpt-51"
